@@ -1,6 +1,18 @@
-import React, { useRef, useEffect, useCallback } from 'react'
-import { getColor } from '../utils/colors'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { formatSize, getPercentage } from '../utils/helpers'
+import SunburstChart from './charts/SunburstChart'
+import TreemapChart from './charts/TreemapChart'
+import CirclePackChart from './charts/CirclePackChart'
+import CityChart from './charts/CityChart'
+import SplitView from './charts/SplitView'
+
+// Chart types
+const CHART_TYPES = [
+  { id: 'sunburst', label: 'Sunburst', icon: '◎' },
+  { id: 'treemap', label: 'Treemap', icon: '⊞' },
+  { id: 'circlepack', label: 'Circle Pack', icon: '○' },
+  { id: 'city', label: 'City', icon: '◫' },
+]
 
 export default function ChartContainer({
   data,
@@ -12,168 +24,272 @@ export default function ChartContainer({
   onClickDirectory,
   onGoBack,
 }) {
-  const svgRef = useRef(null)
   const containerRef = useRef(null)
-  const currentRootRef = useRef(null)
+  const [chartType, setChartType] = useState('sunburst')
+  const [isSplit, setIsSplit] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
+  const [splitSearch, setSplitSearch] = useState('')
+  const [dimensions, setDimensions] = useState({ width: 600, height: 600 })
 
-  useEffect(() => {
-    if (data) {
-      renderSunburst(data)
-    }
-  }, [data])
+  // Reset split view when switching folders or charts
+  useEffect(() => { setIsSplit(false); setIsClosing(false); setSplitSearch('') }, [data, chartType])
 
-  function renderSunburst(data) {
-    const d3 = window.d3
-    if (!d3 || !containerRef.current || !svgRef.current) return
-
-    const svg = d3.select(svgRef.current)
-    svg.selectAll('*').remove()
-
-    const chartWidth = containerRef.current.clientWidth
-    const chartHeight = containerRef.current.clientHeight
-    const radius = Math.min(chartWidth, chartHeight) / 2 * 0.85
-
-    svg.attr('viewBox', `${-chartWidth / 2} ${-chartHeight / 2} ${chartWidth} ${chartHeight}`)
-
-    // Create hierarchy
-    const hierarchy = d3.hierarchy(data)
-      .sum(d => (!d.children || d.children.length === 0) ? d.size : 0)
-      .sort((a, b) => b.value - a.value)
-
-    const root = d3.partition()
-      .size([2 * Math.PI, radius])
-      (hierarchy)
-
-    currentRootRef.current = root
-
-    // Arc generator
-    const arc = d3.arc()
-      .startAngle(d => d.x0)
-      .endAngle(d => d.x1)
-      .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
-      .padRadius(radius / 2)
-      .innerRadius(d => d.y0)
-      .outerRadius(d => d.y1 - 1)
-
-    // Create arcs with animation
-    const paths = svg.selectAll('path')
-      .data(root.descendants().filter(d => d.depth > 0))
-      .join('path')
-      .attr('fill', d => getColor(d))
-      .attr('fill-opacity', d => {
-        const maxDepth = d3.max(root.descendants(), n => n.depth)
-        return 0.95 - (d.depth / (maxDepth + 2)) * 0.3
-      })
-      .attr('stroke', 'rgba(10, 10, 26, 0.5)')
-      .attr('stroke-width', 0.5)
-      .attr('cursor', d => d.data.type === 'directory' ? 'pointer' : 'default')
-      .style('transition', 'fill-opacity 0.2s ease')
-      .on('mouseenter', function (evt, d) {
-        d3.select(this).attr('fill-opacity', 1).attr('stroke', 'rgba(255,255,255,0.3)').attr('stroke-width', 1.5)
-        showTooltipFn(evt, d, root)
-        onHoverNode(d, root)
-      })
-      .on('mousemove', function (evt) {
-        positionTooltipFn(evt)
-      })
-      .on('mouseleave', function (evt, d) {
-        const maxDepth = d3.max(root.descendants(), n => n.depth)
-        d3.select(this)
-          .attr('fill-opacity', 0.95 - (d.depth / (maxDepth + 2)) * 0.3)
-          .attr('stroke', 'rgba(10, 10, 26, 0.5)')
-          .attr('stroke-width', 0.5)
-        hideTooltipFn()
-        // Keep hoveredNode so sidebar & delete button stay visible
-        // Only reset center info back to root
-        onHoverNode(d, root, true)
-      })
-      .on('click', function (evt, d) {
-        if (d.data.type === 'directory' && d.data.path) {
-          onClickDirectory(d.data.path)
-        }
-      })
-
-    // Entrance animation
-    paths.each(function (d) {
-      d._target = { x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 }
-    })
-      .attr('d', function (d) {
-        return arc({ x0: d.x0, x1: d.x1, y0: 0, y1: 0 })
-      })
-      .transition()
-      .duration(800)
-      .delay((d, i) => d.depth * 150 + i * 2)
-      .ease(d3.easeCubicOut)
-      .attrTween('d', function (d) {
-        const iY0 = d3.interpolate(0, d._target.y0)
-        const iY1 = d3.interpolate(0, d._target.y1)
-        return function (t) {
-          return arc({ x0: d.x0, x1: d.x1, y0: iY0(t), y1: iY1(t) })
-        }
-      })
-
-    // Center circle
-    svg.append('circle')
-      .attr('r', root.y1 > 0 ? root.children[0].y0 - 2 : 50)
-      .attr('fill', 'rgba(10, 10, 26, 0.3)')
-      .attr('stroke', 'rgba(124, 92, 252, 0.2)')
-      .attr('stroke-width', 1)
-      .attr('cursor', 'pointer')
-      .style('transition', 'all 0.3s ease')
-      .on('mouseenter', function () {
-        d3.select(this).attr('fill', 'rgba(124, 92, 252, 0.08)').attr('stroke', 'rgba(124, 92, 252, 0.4)')
-      })
-      .on('mouseleave', function () {
-        d3.select(this).attr('fill', 'rgba(10, 10, 26, 0.3)').attr('stroke', 'rgba(124, 92, 252, 0.2)')
-      })
-      .on('click', onGoBack)
-
-    // Initialize sidebar with root details
-    onHoverNode(root, root)
+  // Close split with reverse animation: animate out → then unmount
+  function closeSplit() {
+    setIsClosing(true)
+    setTimeout(() => {
+      setIsSplit(false)
+      setIsClosing(false)
+      setSplitSearch('')
+    }, 520) // slightly longer than animation duration
   }
 
-  // Tooltip functions using ref
-  function showTooltipFn(evt, d, root) {
+  // Handle Resize
+  useEffect(() => {
+    function updateDims() {
+      if (containerRef.current) {
+        const { clientWidth, clientHeight } = containerRef.current
+        setDimensions({ width: clientWidth, height: clientHeight })
+      }
+    }
+    
+    // Initial and on resize
+    updateDims()
+    window.addEventListener('resize', updateDims)
+    return () => window.removeEventListener('resize', updateDims)
+  }, [])
+
+  // Tooltip handler wrapper
+  const handleHoverNode = useCallback((d, root, evt) => {
+    if (d && evt) {
+      showTooltip(evt, d, root)
+    } else {
+      hideTooltip()
+    }
+    // Propagate to parent (Sidebar updates)
+    // Note: Some charts might pass null for root if not applicable, handle gracefully
+    onHoverNode(d, root)
+  }, [onHoverNode])
+
+  // Tooltip Logic (moved from render function)
+  function showTooltip(evt, d, root) {
     const el = tooltipRef.current
     if (!el) return
-    const pct = getPercentage(d, root).toFixed(1)
-    el.innerHTML = `
-      <div class="tt-name">${d.data.name}</div>
-      <div><span class="tt-size">${formatSize(d.value)}</span> · <span class="tt-pct">${pct}%</span></div>
-      ${d.data.type === 'directory' ? `<div style="color:var(--text-muted);font-size:0.72rem;margin-top:2px;">${d.children ? d.children.length : '?'} items</div>` : ''}
+    
+    // Calculate percentage if root is provided
+    let pctStr = ''
+    if (root) {
+      pctStr = getPercentage(d, root).toFixed(1) + '%'
+    }
+
+    // Rich Tooltip Content
+    const isDir = d.data.type === 'directory'
+    
+    let content = `
+      <div class="tt-header">
+        <div class="tt-name">${d.data.name}</div>
+        <div class="tt-meta">
+          <span class="tt-size">${formatSize(d.data.size || 0)}</span>
+          ${pctStr ? ` · <span class="tt-pct">${pctStr}</span>` : ''}
+        </div>
+      </div>
       <div class="tt-path">${d.data.path}</div>
     `
+    
+    // For directories, show top children (Plan: Rich Tooltip)
+    if (isDir && d.children) {
+      const topChildren = [...d.children]
+        .sort((a, b) => (b.data.size || 0) - (a.data.size || 0)) // Sort by actual size
+        .slice(0, 5)
+      
+      let listHtml = '<div class="tt-files">'
+      topChildren.forEach(child => {
+         listHtml += `
+           <div class="tt-file-row">
+             <span class="tt-file-name">${child.data.type === 'directory' ? '📁' : '📄'} ${child.data.name}</span>
+             <span class="tt-file-size">${formatSize(child.data.size || 0)}</span>
+           </div>
+         `
+      })
+      if (d.children.length > 5) {
+        listHtml += `<div class="tt-more">+ ${d.children.length - 5} more...</div>`
+      }
+      listHtml += '</div>'
+      content += listHtml
+    } else if (isDir) {
+       content += `<div class="tt-empty">Empty directory</div>`
+    }
+
+    el.innerHTML = content
     el.classList.add('visible')
-    positionTooltipFn(evt)
+    positionTooltip(evt, el)
   }
 
-  function positionTooltipFn(evt) {
-    const el = tooltipRef.current
-    if (!el) return
+  function positionTooltip(evt, el) {
     const pad = 14
     let x = evt.clientX + pad
     let y = evt.clientY + pad
     const r = el.getBoundingClientRect()
+    
+    // Boundary check
     if (x + r.width > window.innerWidth) x = evt.clientX - r.width - pad
     if (y + r.height > window.innerHeight) y = evt.clientY - r.height - pad
+    
+    // Additional bottom check
+    if (y + r.height > window.innerHeight) y = window.innerHeight - r.height - pad
+
     el.style.left = x + 'px'
     el.style.top = y + 'px'
   }
 
-  function hideTooltipFn() {
+  function hideTooltip() {
     const el = tooltipRef.current
-    if (!el) return
-    el.classList.remove('visible')
+    if (el) el.classList.remove('visible')
   }
 
   return (
     <div className="chart-container glass-panel" id="chart-container" ref={containerRef}>
-      <div className="chart-center-info" id="center-info">
-        <div className="center-name" id="center-name">{centerName}</div>
-        <div className="center-size" id="center-size">{centerSize}</div>
-        <div className="center-items" id="center-items">{centerItems}</div>
+      
+      {/* Chart Type Selector */}
+      <div className="chart-selector">
+        {/* Split button — not for treemap */}
+        {chartType !== 'treemap' && data && data.children && data.children.length > 0 && (
+          <button
+            className={`chart-type-btn ${isSplit ? 'active' : ''}`}
+            onClick={() => isSplit ? closeSplit() : setIsSplit(true)}
+            title={isSplit ? 'Close Split View' : 'Split — scatter children for readability'}
+            style={{ fontSize: '16px', marginRight: 4 }}
+          >
+            {isSplit ? '✕' : '⊹'}
+          </button>
+        )}
+        <div style={{width: 1, background: 'var(--glass-border)', margin: '0 4px', alignSelf: 'stretch'}} />
+        {CHART_TYPES.map(type => (
+          <button 
+            key={type.id}
+            className={`chart-type-btn ${!isSplit && chartType === type.id ? 'active' : ''}`}
+            onClick={() => { setChartType(type.id); setIsSplit(false) }}
+            title={type.label}
+          >
+            {type.icon}
+          </button>
+        ))}
       </div>
-      <svg id="sunburst-chart" ref={svgRef}></svg>
+
+      {/* Search bar — visible only in split mode */}
+      {isSplit && (
+        <div style={{
+          position: 'absolute',
+          top: 8,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10,
+          width: '320px',
+          display: 'flex',
+          alignItems: 'center',
+          background: 'rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          borderRadius: '24px',
+          padding: '6px 14px',
+          backdropFilter: 'blur(12px)',
+          gap: 8,
+        }}>
+          <span style={{ fontSize: 14, opacity: 0.6 }}>🔍</span>
+          <input
+            autoFocus
+            type="text"
+            placeholder="Search folders…"
+            value={splitSearch}
+            onChange={e => setSplitSearch(e.target.value)}
+            style={{
+              background: 'none',
+              border: 'none',
+              outline: 'none',
+              color: '#fff',
+              fontSize: '13px',
+              width: '100%',
+              fontFamily: 'inherit',
+            }}
+          />
+          {splitSearch && (
+            <button
+              onClick={() => setSplitSearch('')}
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 0, fontSize: 14 }}
+            >✕</button>
+          )}
+        </div>
+      )}
+
+      {isSplit && chartType !== 'treemap' && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 5,
+          transition: 'opacity 500ms ease-in-out',
+          opacity: isClosing ? 0 : 1,
+          pointerEvents: isClosing ? 'none' : 'auto',
+        }}>
+          <SplitView
+            data={data}
+            width={dimensions.width}
+            height={dimensions.height}
+            chartType={chartType}
+            searchQuery={splitSearch}
+            isClosing={isClosing}
+            onHoverNode={handleHoverNode}
+            onClickNode={onClickDirectory}
+          />
+        </div>
+      )}
+
+      {/* Normal Charts — always rendered, visible behind split overlay */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1,
+        transition: 'opacity 350ms ease-in-out',
+        opacity: (isSplit && !isClosing) ? 0 : 1,
+        pointerEvents: (isSplit && !isClosing) ? 'none' : 'auto',
+      }}>
+        {chartType === 'sunburst' && (
+          <SunburstChart 
+            data={data} 
+            width={dimensions.width} 
+            height={dimensions.height}
+            onHoverNode={handleHoverNode}
+            onClickNode={onClickDirectory}
+            onGoBack={onGoBack}
+          />
+        )}
+
+        {chartType === 'treemap' && (
+          <TreemapChart 
+            data={data} 
+            width={dimensions.width} 
+            height={dimensions.height}
+            onHoverNode={handleHoverNode}
+            onClickNode={onClickDirectory}
+          />
+        )}
+        
+        {chartType === 'circlepack' && (
+          <CirclePackChart 
+            data={data} 
+            width={dimensions.width} 
+            height={dimensions.height}
+            onHoverNode={handleHoverNode}
+            onClickNode={onClickDirectory}
+          />
+        )}
+
+        {chartType === 'city' && (
+          <CityChart 
+            data={data} 
+            width={dimensions.width} 
+            height={dimensions.height}
+            onHoverNode={handleHoverNode}
+            onClickNode={onClickDirectory}
+            onGoBack={onGoBack}
+          />
+        )}
+      </div>
+
     </div>
   )
 }
