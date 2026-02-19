@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+"""
+macOS Disk Space Visualizer — Entry Point
+A Flask web application that scans your filesystem and presents
+an interactive animated sunburst chart with storage management.
+"""
+
+import threading
+import webbrowser
+import time
+from flask import Flask
+from routes import register_routes
+from config import HOST, PORT
+
+app = Flask(__name__, static_folder="static", static_url_path="/static")
+
+# Register all API routes
+register_routes(app)
+
+
+def open_browser():
+    """Open browser after a short delay to let Flask start."""
+    time.sleep(1.5)
+    webbrowser.open(f"http://{HOST}:{PORT}")
+
+
+if __name__ == "__main__":
+    print("\n🔍 macOS Disk Space Visualizer")
+    print("=" * 40)
+    print(f"Starting server at http://{HOST}:{PORT}")
+    print("Press Ctrl+C to stop\n")
+
+    threading.Thread(target=open_browser, daemon=True).start()
+    app.run(host=HOST, port=PORT, debug=False)
