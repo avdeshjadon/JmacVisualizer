@@ -36,7 +36,11 @@ def register_routes(app):
     @app.route("/")
     def index():
         log_api("GET", "/", "Serving app")
-        return send_from_directory("static/dist", "index.html")
+        return send_from_directory(app.static_folder, "index.html")
+
+    @app.route("/health")
+    def health():
+        return jsonify({"status": "OK", "port": 5005})
 
     @app.route("/api/scan")
     def api_scan():

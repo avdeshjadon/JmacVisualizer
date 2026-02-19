@@ -6,109 +6,304 @@
 
 set -e
 
-# Colors
-R='\033[0;31m'   G='\033[0;32m'   Y='\033[1;33m'
-B='\033[0;34m'   P='\033[0;35m'   C='\033[0;36m'
-W='\033[1;37m'   D='\033[0;90m'   N='\033[0m'
+# ─── Colors & Styles ─────────────────────────────────────────
+R='\033[0;31m'    # Red
+G='\033[0;32m'    # Green
+Y='\033[1;33m'    # Yellow
+B='\033[0;34m'    # Blue
+P='\033[0;35m'    # Magenta/Purple
+C='\033[0;36m'    # Cyan
+W='\033[1;37m'    # Bright White
+D='\033[0;90m'    # Dark Grey
+N='\033[0m'       # Reset
+BOLD='\033[1m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATIC_DIR="$SCRIPT_DIR/static"
+STATIC_DIR="$SCRIPT_DIR/frontend"
+URL="http://127.0.0.1:5005"
 
-# ─── Helpers ─────────────────────────────────────────────────
-step()    { echo -e "  ${D}│${N}"; echo -e "  ${C}◆${N}  $1"; }
-ok()      { echo -e "  ${G}✔${N}  ${D}$1${N}"; }
-fail()    { echo -e "  ${R}✖${N}  $1"; exit 1; }
+# ─── Timestamp ───────────────────────────────────────────────
+ts() { date "+%H:%M:%S"; }
+
+# ─── Log Helpers ─────────────────────────────────────────────
+log_info() {
+    echo -e "${D}$(ts)${N}  ${C}INFO ${N}  $1"
+}
+
+log_ok() {
+    echo -e "${D}$(ts)${N}  ${G}DONE ${N}  $1"
+}
+
+log_warn() {
+    echo -e "${D}$(ts)${N}  ${Y}WARN ${N}  $1"
+}
+
+log_fail() {
+    echo -e "${D}$(ts)${N}  ${R}FAIL ${N}  $1"
+    exit 1
+}
+
+log_step() {
+    echo ""
+    echo -e "${D}$(ts)${N}  ${P}STEP ${N}  ${BOLD}$1${N}"
+}
+
+log_sub() {
+    echo -e "${D}$(ts)${N}  ${D}.... ${N}  ${D}$1${N}"
+}
+
+log_data() {
+    local key="$1"
+    local val="$2"
+    printf "${D}%s${N}  ${D}....${N}  %-24s ${W}%s${N}\n" "$(ts)" "$key" "$val"
+}
+
+log_div() {
+    echo -e "${D}──────────────────────────────────────────────────────────────${N}"
+}
+
+log_divthick() {
+    echo -e "${D}══════════════════════════════════════════════════════════════${N}"
+}
+
+# ─── Progress Bar ────────────────────────────────────────────
+progress() {
+    local label="$1"
+    local pct="$2"
+    local width=28
+    local filled=$(( pct * width / 100 ))
+    local empty=$(( width - filled ))
+    local bar=""
+    for ((i=0; i<filled; i++)); do bar+="█"; done
+    for ((i=0; i<empty; i++));  do bar+="░"; done
+    printf "${D}%s${N}  ${B}PROG${N}  %-24s [${G}%s${D}%s${N}] ${W}%3d%%${N}\n" \
+        "$(ts)" "$label" "$bar" "" "$pct"
+}
 
 # ─── Cleanup ─────────────────────────────────────────────────
 cleanup() {
     echo ""
-    [ -n "$FLASK_PID" ] && kill "$FLASK_PID" 2>/dev/null && wait "$FLASK_PID" 2>/dev/null
-    echo -e "  ${D}───────────────────────────────────────────${N}"
-    echo -e "  ${W}Server stopped.${N} Goodbye! 👋"
-    echo -e "  ${D}───────────────────────────────────────────${N}"
+    log_divthick
+    if [ -n "$FLASK_PID" ]; then
+        log_info "Sending SIGTERM to PID ${W}$FLASK_PID${N}"
+        kill "$FLASK_PID" 2>/dev/null && wait "$FLASK_PID" 2>/dev/null
+        log_ok "Server process terminated cleanly"
+    fi
+    log_divthick
+    echo -e "                  ${P}${BOLD}SYSTEM HALTED${N}"
+    log_divthick
     echo ""
 }
 trap cleanup EXIT INT TERM
 
+
 # ═══════════════════════════════════════════════════════════
-#  START
+#  BOOT
 # ═══════════════════════════════════════════════════════════
 clear
 echo ""
-echo -e "  ${P}┌───────────────────────────────────────────┐${N}"
-echo -e "  ${P}│${N}  ${W}🔍  J m a c   V i s u a l i z e r${N}        ${P}│${N}"
-echo -e "  ${P}│${N}  ${D}Made by Avdesh Jadon${N}                     ${P}│${N}"
-echo -e "  ${P}└───────────────────────────────────────────┘${N}"
+log_divthick
 
-# ─── 1. Prerequisites ────────────────────────────────────────
-step "Checking prerequisites"
+echo -e "${P}"
+echo "     ██╗███╗   ███╗ █████╗  ██████╗"
+echo "     ██║████╗ ████║██╔══██╗██╔════╝"
+echo "     ██║██╔████╔██║███████║██║"
+echo "██   ██║██║╚██╔╝██║██╔══██║██║"
+echo "╚█████╔╝██║ ╚═╝ ██║██║  ██║╚██████╗"
+echo " ╚════╝ ╚═╝     ╚═╝╚═╝  ╚═╝ ╚═════╝"
+echo -e "${N}"
+echo -e "${C}"
+echo " ██╗   ██╗██╗███████╗██╗   ██╗ █████╗ ██╗     ██╗███████╗███████╗██████╗"
+echo " ██║   ██║██║██╔════╝██║   ██║██╔══██╗██║     ██║╚══███╔╝██╔════╝██╔══██╗"
+echo " ██║   ██║██║███████╗██║   ██║███████║██║     ██║  ███╔╝ █████╗  ██████╔╝"
+echo " ╚██╗ ██╔╝██║╚════██║██║   ██║██╔══██║██║     ██║ ███╔╝  ██╔══╝  ██╔══██╗"
+echo "  ╚████╔╝ ██║███████║╚██████╔╝██║  ██║███████╗██║███████╗███████╗██║  ██║"
+echo "   ╚═══╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝"
+echo -e "${N}"
 
-python3 --version &>/dev/null || fail "Python3 not found"
-ok "Python $(python3 --version 2>&1 | cut -d' ' -f2)"
+log_divthick
+printf "  ${D}%-20s${N}  ${W}%-38s${N}\n" "SYSTEM"    "MacOS Disk Space Visualizer"
+printf "  ${D}%-20s${N}  ${W}%-38s${N}\n" "DEV"       "Avdesh Jadon"
+printf "  ${D}%-20s${N}  ${W}%-38s${N}\n" "ENDPOINT"  "$URL"
+printf "  ${D}%-20s${N}  ${W}%-38s${N}\n" "BOOT TIME" "$(date '+%Y-%m-%d %H:%M:%S')"
+log_divthick
 
-node --version &>/dev/null || fail "Node.js not found"
-ok "Node.js $(node --version 2>&1)"
+
+# ─── 1. System Check ─────────────────────────────────────────
+log_step "System Prerequisites"
+log_div
+
+python3 --version &>/dev/null || log_fail "Python3 not found — install via brew or python.org"
+PY_VER=$(python3 --version 2>&1 | cut -d' ' -f2)
+log_ok   "Python detected"
+log_data "python.version" "$PY_VER"
+
+node --version &>/dev/null || log_fail "Node.js not found — install via brew or nodejs.org"
+NODE_VER=$(node --version 2>&1)
+log_ok   "Node.js detected"
+log_data "node.version" "$NODE_VER"
+
+NPX_VER=$(npx --version 2>&1)
+log_ok   "npx detected"
+log_data "npx.version" "$NPX_VER"
+
 
 # ─── 2. Dependencies ─────────────────────────────────────────
-step "Installing dependencies"
+log_step "Dependency Resolution"
+log_div
 
+log_info "Checking Python packages..."
 pip3 install -q flask 2>/dev/null || pip install -q flask 2>/dev/null || true
-ok "Flask ready"
+FLASK_VER=$(python3 -c "import flask; print(flask.__version__)" 2>/dev/null || echo "unknown")
+log_ok   "Flask ready"
+log_data "flask.version" "$FLASK_VER"
 
 if [ ! -d "$STATIC_DIR/node_modules" ]; then
+    log_info "node_modules not found — running npm install"
+    progress "npm install" 10
     (cd "$STATIC_DIR" && npm install --silent 2>&1 >/dev/null)
-    ok "Node modules installed"
+    progress "npm install" 100
+    log_ok   "Node modules installed"
+    log_data "modules.path" "$STATIC_DIR/node_modules"
 else
-    ok "Node modules cached"
+    log_ok   "Node modules cache hit"
+    log_data "modules.path" "$STATIC_DIR/node_modules"
+    NODE_COUNT=$(ls "$STATIC_DIR/node_modules" 2>/dev/null | wc -l | tr -d ' ')
+    log_data "modules.count" "$NODE_COUNT packages"
 fi
 
+
 # ─── 3. Build ────────────────────────────────────────────────
-step "Building React app"
+log_step "Interface Compilation  [Vite]"
+log_div
+
+log_info "Starting Vite production build..."
+progress "vite build" 25
+sleep 0.1
 
 BUILD_OUTPUT=$(cd "$STATIC_DIR" && npx vite build 2>&1)
-BUILD_TIME=$(echo "$BUILD_OUTPUT" | grep -o 'built in [0-9]*ms' || echo "built")
-ok "Vite $BUILD_TIME"
+BUILD_EXIT=$?
 
-# ─── 4. Launch ───────────────────────────────────────────────
-step "Starting server"
-echo ""
-echo -e "  ${G}┌───────────────────────────────────────────┐${N}"
-echo -e "  ${G}│${N}                                           ${G}│${N}"
-echo -e "  ${G}│${N}   ${W}🌐  http://127.0.0.1:5000${N}               ${G}│${N}"
-echo -e "  ${G}│${N}                                           ${G}│${N}"
-echo -e "  ${G}└───────────────────────────────────────────┘${N}"
-echo ""
-echo -e "  ${D}Press ${W}Ctrl+C${D} to stop${N}"
-echo -e "  ${D}───────────────────────────────────────────${N}"
-echo ""
+progress "vite build" 100
 
-# Kill anything on port 5000 first
-lsof -ti:5000 2>/dev/null | xargs kill -9 2>/dev/null || true
+if [ $BUILD_EXIT -ne 0 ]; then
+    log_fail "Vite build failed — check frontend/src for errors"
+fi
 
-# Start Flask — stdout (Flask banner) → hidden, stderr (our logs) → terminal
-python3 -c "
-import sys, os, logging
+BUILD_TIME=$(echo "$BUILD_OUTPUT"  | grep -oE 'built in [0-9]+(\.[0-9]+)?(ms|s)'  | head -1 || echo "—")
+BUILD_SIZE=$(echo "$BUILD_OUTPUT"  | grep -oE '[0-9]+\.[0-9]+ kB'                 | head -1 || echo "—")
+CHUNK_COUNT=$(echo "$BUILD_OUTPUT" | grep -c 'dist/' 2>/dev/null                  || echo "—")
 
-sys.path.insert(0, '$SCRIPT_DIR')
-os.chdir('$SCRIPT_DIR')
+log_ok   "Build succeeded"
+log_data "build.time"   "$BUILD_TIME"
+log_data "build.size"   "$BUILD_SIZE"
+log_data "build.chunks" "$CHUNK_COUNT files emitted"
+log_data "build.output" "$STATIC_DIR/dist"
 
-# Suppress werkzeug HTTP request logs
-logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
-from app import app
-from config import HOST, PORT
-app.run(host=HOST, port=PORT, debug=False)
-" 1>/dev/null &
+# ─── 4. Network ──────────────────────────────────────────────
+log_step "Network Initialization"
+log_div
+
+log_info "Releasing port 5005..."
+KILLED_PIDS=$(lsof -ti:5005 2>/dev/null || true)
+if [ -n "$KILLED_PIDS" ]; then
+    echo "$KILLED_PIDS" | xargs kill -9 2>/dev/null || true
+    log_warn "Evicted stale process(es): ${Y}$KILLED_PIDS${N}"
+else
+    log_ok "Port 5005 is free"
+fi
+
+
+# ─── 5. Server Launch ────────────────────────────────────────
+log_step "Flask Server Boot"
+log_div
+
+LOG_FILE="$SCRIPT_DIR/backend/server.log"
+rm -f "$LOG_FILE"
+
+log_info "Spawning Python WSGI process..."
+log_data "server.log" "$LOG_FILE"
+
+python3 "$SCRIPT_DIR/backend/app.py" >> "$LOG_FILE" 2>&1 &
 FLASK_PID=$!
 
-sleep 2
+log_sub "Polling health endpoint (max 10s)..."
 
-if kill -0 "$FLASK_PID" 2>/dev/null; then
-    ok "Server running  ─  PID $FLASK_PID"
-    echo -e "  ${D}│${NC}"
-    echo -e "  ${D}│  ${C}Live scan logs below ↓${N}"
-    echo -e "  ${D}│${NC}"
-    wait "$FLASK_PID"
+ATTEMPTS=0
+SERVER_UP=false
+while [ $ATTEMPTS -lt 10 ]; do
+    if curl -s "http://127.0.0.1:5005/health" > /dev/null 2>&1; then
+        SERVER_UP=true
+        break
+    fi
+    ATTEMPTS=$(( ATTEMPTS + 1 ))
+    printf "\r${D}$(ts)${N}  ${C}WAIT ${N}  ${D}attempt %d/10 — retrying in 1s...${N}" "$ATTEMPTS"
+    sleep 1
+done
+printf "\r\033[2K"
+
+if [ "$SERVER_UP" = false ]; then
+    log_warn "Health check timed out after 10 attempts"
+    log_fail "Server failed to respond — see $LOG_FILE"
+fi
+
+if ! kill -0 "$FLASK_PID" 2>/dev/null; then
+    log_fail "Flask process exited unexpectedly — see $LOG_FILE"
+fi
+
+log_ok   "Flask server is alive"
+log_data "server.pid"    "$FLASK_PID"
+log_data "server.host"   "127.0.0.1"
+log_data "server.port"   "5005"
+log_data "server.url"    "$URL"
+log_data "server.health" "$URL/health  →  200 OK"
+
+
+# ─── 6. Browser Launch ───────────────────────────────────────
+log_step "Display Layer"
+log_div
+
+CHROME_APP="/Applications/Google Chrome.app"
+CHROMIUM_APP="/Applications/Chromium.app"
+BRAVE_APP="/Applications/Brave Browser.app"
+USER_DATA_DIR="/tmp/jmac-visualizer-profile"
+FLAGS="--app=$URL --user-data-dir=$USER_DATA_DIR --no-first-run --no-default-browser-check --window-size=1280,820 --disable-background-mode"
+
+mkdir -p "$USER_DATA_DIR"
+log_sub  "Isolated browser profile: $USER_DATA_DIR"
+
+BROWSER=""
+if   [ -d "$CHROME_APP" ];   then BROWSER="Google Chrome"
+elif [ -d "$CHROMIUM_APP" ]; then BROWSER="Chromium"
+elif [ -d "$BRAVE_APP" ];    then BROWSER="Brave"
+else                               BROWSER="System Default"
+fi
+
+if [ "$BROWSER" = "System Default" ]; then
+    log_warn "Chromium-based browser not found — falling back to system default"
 else
-    fail "Server failed to start. Try: python3 app.py"
+    log_ok "Browser resolved"
+fi
+
+log_data "browser.engine"  "$BROWSER"
+log_data "browser.mode"    "--app (standalone window)"
+log_data "browser.size"    "1280×820"
+log_data "browser.profile" "$USER_DATA_DIR"
+
+echo ""
+log_divthick
+echo -e "  ${G}${BOLD}▶  VISUALIZER ONLINE${N}   ${D}─${N}   ${W}$URL${N}"
+log_divthick
+echo -e "  ${D}Close the app window or press Ctrl+C to stop the server.${N}"
+log_divthick
+echo ""
+
+# ─── Open Browser ────────────────────────────────────────────
+if   [ -d "$CHROME_APP" ];   then open -n -W -a "$CHROME_APP"   --args $FLAGS >/dev/null 2>&1
+elif [ -d "$CHROMIUM_APP" ]; then open -n -W -a "$CHROMIUM_APP" --args $FLAGS >/dev/null 2>&1
+elif [ -d "$BRAVE_APP" ];    then open -n -W -a "$BRAVE_APP"    --args $FLAGS >/dev/null 2>&1
+else
+    open "$URL" 2>/dev/null || true
+    wait "$FLASK_PID"
 fi

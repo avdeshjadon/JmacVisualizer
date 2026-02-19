@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRootChange, onBack, canGoBack }) {
+export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRootChange, onRefresh }) {
   return (
     <header className="header">
       <div className="header-left">
@@ -48,13 +48,15 @@ export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRo
             <option key={r.path} value={r.path}>{r.name}</option>
           ))}
         </select>
-        <button id="back-btn" className="btn btn-ghost" title="Go back" disabled={!canGoBack} onClick={onBack}>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15,18 9,12 15,6" />
+        <button id="refresh-btn" className="btn btn-ghost" title="Refresh scan" onClick={onRefresh}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
           </svg>
-          Back
+          Refresh
         </button>
       </div>
     </header>
   )
 }
+

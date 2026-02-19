@@ -17,7 +17,6 @@ export default function App() {
   const [roots, setRoots] = useState([])
   const [chartData, setChartData] = useState(null)
   const [currentRoot, setCurrentRoot] = useState(null)
-  const [navigationHistory, setNavigationHistory] = useState([])
   const [breadcrumbParts, setBreadcrumbParts] = useState([{ name: '~', path: '' }])
 
   // Center info state
@@ -117,14 +116,12 @@ export default function App() {
     setBreadcrumbParts(result.length > 0 ? result : [{ name: '~', path: '' }])
   }
 
-  function goBack() {
-    setNavigationHistory(prev => {
-      if (prev.length === 0) return prev
-      const newHistory = [...prev]
-      const prevPath = newHistory.pop()
-      loadAndRender(prevPath, 3, false)
-      return newHistory
-    })
+  function handleRefresh() {
+    if (currentPathRef.current) {
+      loadAndRender(currentPathRef.current, 3, false)
+    } else {
+      init()
+    }
   }
 
   function handleHoverNode(d, root, resetCenter = false) {
@@ -201,8 +198,7 @@ export default function App() {
         roots={roots}
         onBreadcrumbClick={handleBreadcrumbClick}
         onRootChange={handleRootChange}
-        onBack={goBack}
-        canGoBack={navigationHistory.length > 0}
+        onRefresh={handleRefresh}
       />
 
       <StorageOverview />
@@ -216,7 +212,7 @@ export default function App() {
           tooltipRef={tooltipRef}
           onHoverNode={handleHoverNode}
           onClickDirectory={handleClickDirectory}
-          onGoBack={goBack}
+          onGoBack={handleRefresh}
         />
 
         <Sidebar

@@ -138,13 +138,11 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: var(--bg-primary);
+  background: #07071a;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    opacity 0.6s ease,
-    visibility 0.6s ease;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 .loading-overlay.hidden {
@@ -153,81 +151,187 @@ body::after {
   pointer-events: none;
 }
 
-.loader {
-  text-align: center;
+/* ─── Minimal Scanner ──────────────────────────── */
+/* ─── Cinematic Scanner ─────────────────────────── */
+/* ─── PC Scanner ────────────────────────────────── */
+.pc-scanner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   position: relative;
+  z-index: 10;
+  transform: scale(1.4);
 }
 
-.loader-ring {
+.monitor-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.monitor-frame {
+  width: 220px;
+  height: 150px;
+  background: #2a2a35;
+  border-radius: 12px;
+  padding: 10px;
+  position: relative;
+  box-shadow: 0 0 50px rgba(0,0,0,0.6), inset 0 0 10px rgba(0,0,0,0.8);
+  border: 1px solid #444455;
+  z-index: 2; /* Ensure screen is above stand */
+}
+
+.monitor-screen {
+  width: 100%;
+  height: 100%;
+  background: #050510;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+}
+
+.monitor-chin {
   position: absolute;
-  border: 2px solid transparent;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0; /* Let it sit naturally, or absolute inside padding? */
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.monitor-led {
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  animation: spin 2s linear infinite;
+  background: #2ed573;
+  box-shadow: 0 0 6px #2ed573;
+  position: absolute;
+  bottom: -6px; /* Below screen area, inside bottom padding zone */
+  animation: ledPulse 1s infinite alternate;
 }
 
-.loader-ring:nth-child(1) {
-  width: 120px;
-  height: 120px;
-  top: -30px;
-  left: calc(50% - 60px);
-  border-top-color: var(--accent-1);
-  border-bottom-color: var(--accent-1);
+@keyframes ledPulse {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
 }
 
-.loader-ring:nth-child(2) {
-  width: 90px;
-  height: 90px;
-  top: -15px;
-  left: calc(50% - 45px);
-  border-left-color: var(--accent-2);
-  border-right-color: var(--accent-2);
-  animation-direction: reverse;
-  animation-duration: 1.5s;
+.monitor-neck {
+  width: 50px;
+  height: 25px;
+  background: #22222d;
+  margin-top: -4px;
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  border-left: 1px solid #333344;
+  border-right: 1px solid #333344;
 }
 
-.loader-ring:nth-child(3) {
-  width: 60px;
-  height: 60px;
-  top: 0;
-  left: calc(50% - 30px);
-  border-top-color: var(--accent-3);
-  border-bottom-color: var(--accent-3);
-  animation-duration: 1s;
+.monitor-base {
+  width: 100px;
+  height: 8px;
+  background: #22222d;
+  border-radius: 4px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 1;
+  border-top: 1px solid #333344;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+/* ─── Screen Internal Files ─── */
+.screen-content {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: scrollFiles 4s linear infinite;
 }
 
-.loader-text {
-  margin-top: 100px;
-  font-size: 1.3rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: pulse 2s ease-in-out infinite;
+@keyframes scrollFiles {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
 }
 
-.loader-subtext {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  animation: pulse 2s ease-in-out infinite 0.3s;
+.screen-file-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 6px;
+  opacity: 0.6;
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+.file-icon {
+  width: 6px;
+  height: 6px;
+  background: #444455;
+  border-radius: 1px;
 }
+
+.file-line {
+  height: 4px;
+  background: #333344;
+  border-radius: 2px;
+}
+
+/* ─── Scan Line & Overlay ─── */
+.screen-scan-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(46, 213, 115, 0.05) 40%,
+    rgba(46, 213, 115, 0.2) 50%,
+    transparent 100%
+  );
+  animation: scanPass 2.5s linear infinite;
+  pointer-events: none;
+}
+
+.screen-scan-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #2ed573;
+  box-shadow: 0 0 10px #2ed573, 0 0 20px #2ed573;
+  animation: scanLinePass 2.5s linear infinite;
+  opacity: 0.9;
+  z-index: 10;
+}
+
+@keyframes scanPass {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes scanLinePass {
+  0% { top: -2%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 102%; opacity: 0; }
+}
+
+.screen-glare {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+
+
+
+
+
+
+
 
 /* ─── Header ────────────────────────────────────────────────── */
 .header {

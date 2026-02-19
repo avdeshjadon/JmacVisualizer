@@ -29,14 +29,23 @@ export default function CityChart({ data, width, height, onHoverNode, onClickNod
     // Center the city in the viewport
     const centerX = width / 2
     const centerY = height / 4
+    // Center the city in the viewport
     const container = zoomGroup.append('g')
       .attr('transform', `translate(${centerX}, ${centerY})`)
 
-    // √(size) scaling: big files = bigger footprint, tiny files still visible
-    const MIN_BYTES = 4096
+    // Determine sizing: flatten distribution for visibility
+    // Raise MIN_BYTES to ensure small files have a visible footprint
+    const MIN_BYTES = 40000 // 40KB floor
     const root = d3.hierarchy(data)
-      .sum(d => (!d.children || d.children.length === 0) ? Math.sqrt(Math.max(d.size || 0, MIN_BYTES)) : 0)
-      .sort((a, b) => (b.data.size || 0) - (a.data.size || 0))
+      .sum(d => {
+        if (!d.children || d.children.length === 0) {
+          const size = d.size || 0
+          // Use power 0.4 to boost smaller files relative to large ones
+          return Math.pow(Math.max(size, MIN_BYTES), 0.4)
+        }
+        return 0
+      })
+      .sort((a, b) => (b.value || 0) - (a.value || 0))
 
     const mapSize = Math.min(width, height) * 1.5
     d3.treemap()

@@ -12,9 +12,13 @@ venv/
 .env
 
 # Node / Vite
-static/node_modules/
-static/dist/
-static/.vite/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Backend
+backend/__pycache__/
+backend/server.log
 
 # OS
 .DS_Store

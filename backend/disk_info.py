@@ -19,11 +19,10 @@ def get_disk_usage():
 
 def categorize_home_storage():
     """
-    Walk the user's home directory and categorize files by type.
-    Returns a list of categories with name, size, and color.
+    Categorize files in the user's home directory by type.
+    Uses a shallow walk (depth 2) to maintain performance.
     """
     home = os.path.expanduser("~")
-    # Build a reverse map: extension → category
     ext_to_category = {}
     for category, extensions in CATEGORY_EXTENSIONS.items():
         for ext in extensions:
@@ -32,25 +31,32 @@ def categorize_home_storage():
     category_sizes = {cat: 0 for cat in CATEGORY_EXTENSIONS}
     category_sizes["Other"] = 0
 
+    # Limit walk depth for performance
+    MAX_DEPTH = 2
+    basedir = home.rstrip(os.sep)
+    start_level = basedir.count(os.sep)
+
     try:
         for root, dirs, files in os.walk(home, followlinks=False):
-            # Skip hidden dirs and known heavy system dirs
-            dirs[:] = [
-                d for d in dirs
-                if d not in {"node_modules", "__pycache__", "venv"}
-            ]
+            level = root.count(os.sep) - start_level
+            if level >= MAX_DEPTH:
+                # Don't go deeper into subdirectories
+                dirs[:] = []
+            
+            # Skip hidden and high-traffic dirs
+            dirs[:] = [d for d in dirs if not d.startswith(".") and d not in {"node_modules", "Library", "Applications", "Pictures", "Music"}]
+            
             for f in files:
                 if f.startswith("."):
                     continue
                 filepath = os.path.join(root, f)
                 try:
                     size = os.path.getsize(filepath)
+                    ext = os.path.splitext(f)[1].lower()
+                    cat = ext_to_category.get(ext, "Other")
+                    category_sizes[cat] += size
                 except (OSError, PermissionError):
                     continue
-
-                ext = os.path.splitext(f)[1].lower()
-                cat = ext_to_category.get(ext, "Other")
-                category_sizes[cat] += size
     except (PermissionError, OSError):
         pass
 
