@@ -127,6 +127,9 @@ export default function ChartContainer({
         d3.select(this).attr('fill', 'rgba(10, 10, 26, 0.3)').attr('stroke', 'rgba(124, 92, 252, 0.2)')
       })
       .on('click', onGoBack)
+
+    // Initialize sidebar with root details
+    onHoverNode(root, root)
   }
 
   // Tooltip functions using ref

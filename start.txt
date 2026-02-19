@@ -1,2 +1,0 @@
-cd /Users/avdeshjadon/DiskVisualizer
-python3 app.py

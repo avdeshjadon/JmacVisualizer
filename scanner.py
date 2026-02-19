@@ -22,12 +22,13 @@ def log_scan(msg):
 
 
 def format_size(b):
-    if b >= 1024**3:
-        return f"{b/1024**3:.1f} GB"
-    elif b >= 1024**2:
-        return f"{b/1024**2:.1f} MB"
-    elif b >= 1024:
-        return f"{b/1024:.1f} KB"
+    """Format bytes using SI units (1000-based) to match macOS Finder."""
+    if b >= 1000**3:
+        return f"{b/1000**3:.2f} GB"
+    elif b >= 1000**2:
+        return f"{b/1000**2:.1f} MB"
+    elif b >= 1000:
+        return f"{b/1000:.1f} KB"
     return f"{b} B"
 
 

@@ -12,6 +12,12 @@ export default function Sidebar({ hoveredNode, rootNode, onDelete, onNavigate })
         <SidebarDetail d={hoveredNode} root={rootNode} onDelete={onDelete} />
       </div>
 
+      {/* Directory Contents */}
+      <div className="sidebar-section" id="dir-contents-section">
+        <h3>Directory Contents</h3>
+        <FolderList root={rootNode} onNavigate={onNavigate} />
+      </div>
+
       {/* Top files list */}
       <div className="sidebar-section" id="top-files-section">
         <h3>Largest Items</h3>
@@ -24,6 +30,42 @@ export default function Sidebar({ hoveredNode, rootNode, onDelete, onNavigate })
         <Legend root={rootNode} />
       </div>
     </aside>
+  )
+}
+
+function FolderList({ root, onNavigate }) {
+  if (!root || !root.children) return <div className="empty-state">Empty directory</div>
+
+  // Sort: Directories first, then files. Both alphabetical.
+  const sorted = [...root.children].sort((a, b) => {
+    const aIsDir = a.data.type === 'directory'
+    const bIsDir = b.data.type === 'directory'
+    if (aIsDir && !bIsDir) return -1
+    if (!aIsDir && bIsDir) return 1
+    return a.data.name.localeCompare(b.data.name)
+  })
+
+  return (
+    <ul className="file-list" id="folder-list">
+      {sorted.map((d, i) => {
+        const isDir = d.data.type === 'directory'
+        const c = getColor(d)
+        return (
+          <li key={d.data.path || i} 
+              onClick={() => { if (isDir && d.data.path) onNavigate(d.data.path) }}
+              style={{ cursor: isDir ? 'pointer' : 'default' }}
+          >
+            <span className="color-dot" style={{ background: c }}></span>
+            <div className="file-info">
+              <div className="file-name" title={d.data.name}>
+                {isDir ? '📁 ' : ''}{d.data.name}
+              </div>
+              <div className="file-size">{formatSize(d.value)}</div>
+            </div>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
