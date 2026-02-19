@@ -1,6 +1,14 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════════
+#  Built with ♥ by Avdesh Jadon
+#  GitHub: https://github.com/avdeshjadon
+#
+#  This software is free to use. If you find it helpful:
+#  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
+# ═══════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════
 #  Jmac Visualizer — One-Click Launcher
 # ═══════════════════════════════════════════════════════════
 
@@ -88,6 +96,11 @@ cleanup() {
         log_info "Sending SIGTERM to PID ${W}$FLASK_PID${N}"
         kill "$FLASK_PID" 2>/dev/null && wait "$FLASK_PID" 2>/dev/null
         log_ok "Server process terminated cleanly"
+    fi
+    if [ -d "$USER_DATA_DIR" ]; then
+        log_info "Cleaning up browser profile..."
+        rm -rf "$USER_DATA_DIR" 2>/dev/null
+        log_ok "Profile deleted: $USER_DATA_DIR"
     fi
     log_divthick
     echo -e "                  ${P}${BOLD}SYSTEM HALTED${N}"
@@ -300,10 +313,39 @@ log_divthick
 echo ""
 
 # ─── Open Browser ────────────────────────────────────────────
-if   [ -d "$CHROME_APP" ];   then open -n -W -a "$CHROME_APP"   --args $FLAGS >/dev/null 2>&1
-elif [ -d "$CHROMIUM_APP" ]; then open -n -W -a "$CHROMIUM_APP" --args $FLAGS >/dev/null 2>&1
-elif [ -d "$BRAVE_APP" ];    then open -n -W -a "$BRAVE_APP"    --args $FLAGS >/dev/null 2>&1
-else
+CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+CHROMIUM_BIN="/Applications/Chromium.app/Contents/MacOS/Chromium"
+BRAVE_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+
+BROWSER_EXE=""
+if   [ -f "$CHROME_BIN" ];   then BROWSER_EXE="$CHROME_BIN"
+elif [ -f "$CHROMIUM_BIN" ]; then BROWSER_EXE="$CHROMIUM_BIN"
+elif [ -f "$BRAVE_BIN" ];    then BROWSER_EXE="$BRAVE_BIN"
+fi
+
+if [ -z "$BROWSER_EXE" ]; then
+    log_warn "Chromium-based browser not found — falling back to 'open' utility"
+    log_data "browser.engine" "System Default"
     open "$URL" 2>/dev/null || true
+    log_info "Blocking on Flask server process..."
     wait "$FLASK_PID"
+else
+    log_ok "Browser resolved"
+    log_data "browser.path"    "$BROWSER_EXE"
+    log_data "browser.mode"    "--app (standalone window)"
+    log_data "browser.size"    "1280×820"
+
+    echo ""
+    log_divthick
+    echo -e "  ${G}${BOLD}▶  VISUALIZER ONLINE${N}   ${D}─${N}   ${W}$URL${N}"
+    log_divthick
+    echo -e "  ${D}Close the app window to stop the server.${N}"
+    log_divthick
+    echo ""
+
+    # Launch browser directly and wait for its completion
+    "$BROWSER_EXE" $FLAGS >/dev/null 2>&1 &
+    BROWSER_PID=$!
+    wait $BROWSER_PID
+    exit 0
 fi

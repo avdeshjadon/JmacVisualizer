@@ -1,3 +1,10 @@
+# ═══════════════════════════════════════════════════════════
+#  Built with ♥ by Avdesh Jadon
+#  GitHub: https://github.com/avdeshjadon
+#
+#  This software is free to use. If you find it helpful:
+#  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
+# ═══════════════════════════════════════════════════════════
 """
 Filesystem scanner — fast recursive scanning with du fallback only for permission-denied dirs.
 """

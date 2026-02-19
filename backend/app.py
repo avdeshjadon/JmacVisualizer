@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# ═══════════════════════════════════════════════════════════
+#  Built with ♥ by Avdesh Jadon
+#  GitHub: https://github.com/avdeshjadon
+#
+#  This software is free to use. If you find it helpful:
+#  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
+# ═══════════════════════════════════════════════════════════
 """
 Jmac Visualizer — Entry Point
 A Flask web application that scans your filesystem and presents
@@ -24,18 +31,11 @@ app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="/static")
 register_routes(app)
 
 
-def open_browser():
-    """Open browser after a short delay to let Flask start."""
-    time.sleep(1.5)
-    webbrowser.open(f"http://{HOST}:{PORT}")
-
-
 if __name__ == "__main__":
     print("\n🔍 Jmac Visualizer")
     print("=" * 40)
     print(f"Starting server at http://{HOST}:{PORT}")
     print("Press Ctrl+C to stop\n")
 
-    threading.Thread(target=open_browser, daemon=True).start()
     app.run(host="127.0.0.1", port=PORT, debug=False)
 

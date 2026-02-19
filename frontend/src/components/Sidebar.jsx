@@ -1,3 +1,12 @@
+/**
+ * ═══════════════════════════════════════════════════════════
+ *  Built with ♥ by Avdesh Jadon
+ *  GitHub: https://github.com/avdeshjadon
+ *
+ *  This software is free to use. If you find it helpful:
+ *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
+ * ═══════════════════════════════════════════════════════════
+ */
 import React from 'react'
 import { formatSize, getPercentage } from '../utils/helpers'
 import { getColor, FILE_COLORS } from '../utils/colors'

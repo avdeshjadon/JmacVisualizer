@@ -1,3 +1,12 @@
+/**
+ * ═══════════════════════════════════════════════════════════
+ *  Built with ♥ by Avdesh Jadon
+ *  GitHub: https://github.com/avdeshjadon
+ *
+ *  This software is free to use. If you find it helpful:
+ *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
+ * ═══════════════════════════════════════════════════════════
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import LoadingOverlay from './components/LoadingOverlay'
 import Header from './components/Header'
