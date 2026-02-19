@@ -7,8 +7,8 @@ SKIP_DIRS = {
     "/dev", "/proc", "/sys", "/private/var/vm",
     "/System/Volumes/Data/.Spotlight-V100",
     "/System/Volumes/Data/.fseventsd",
-    ".Trash", ".Spotlight-V100", ".fseventsd",
-    "node_modules", ".git", "__pycache__",
+    ".Spotlight-V100", ".fseventsd",
+    ".git", "__pycache__",
 }
 
 SKIP_NAMES = {

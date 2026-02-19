@@ -37,8 +37,7 @@ def categorize_home_storage():
             # Skip hidden dirs and known heavy system dirs
             dirs[:] = [
                 d for d in dirs
-                if not d.startswith(".")
-                and d not in {"node_modules", "__pycache__", "venv", ".Trash"}
+                if d not in {"node_modules", "__pycache__", "venv"}
             ]
             for f in files:
                 if f.startswith("."):

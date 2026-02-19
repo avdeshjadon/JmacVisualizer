@@ -54,6 +54,15 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Animated background orbs */
@@ -570,7 +579,9 @@ body::after {
   grid-template-columns: 1fr 340px;
   gap: 16px;
   padding: 12px 24px 16px;
-  height: calc(100vh - 165px);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ─── Chart Container ───────────────────────────────────────── */
@@ -1086,6 +1097,29 @@ body::after {
   }
 }
 
+/* ─── Footer ────────────────────────────────────────────────── */
+.app-footer {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 8px 24px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: rgba(10, 10, 26, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--glass-border);
+  letter-spacing: 0.5px;
+}
+
+.app-footer span {
+  background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 500;
+}
+
 /* ─── Responsive ────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .main-content {
@@ -1114,6 +1148,5 @@ body::after {
 
   .main-content {
     padding: 8px 12px 12px;
-    height: calc(100vh - 200px);
   }
 }

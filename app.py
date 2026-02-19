@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-macOS Disk Space Visualizer — Entry Point
+Jmac Visualizer — Entry Point
 A Flask web application that scans your filesystem and presents
 an interactive animated sunburst chart with storage management.
 """
@@ -12,7 +12,7 @@ from flask import Flask
 from routes import register_routes
 from config import HOST, PORT
 
-app = Flask(__name__, static_folder="static", static_url_path="/static")
+app = Flask(__name__, static_folder="static/dist", static_url_path="/static")
 
 # Register all API routes
 register_routes(app)
@@ -25,10 +25,11 @@ def open_browser():
 
 
 if __name__ == "__main__":
-    print("\n🔍 macOS Disk Space Visualizer")
+    print("\n🔍 Jmac Visualizer")
     print("=" * 40)
     print(f"Starting server at http://{HOST}:{PORT}")
     print("Press Ctrl+C to stop\n")
 
     threading.Thread(target=open_browser, daemon=True).start()
     app.run(host=HOST, port=PORT, debug=False)
+
