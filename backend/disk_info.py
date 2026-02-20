@@ -38,25 +38,35 @@ def categorize_home_storage():
     category_sizes = {cat: 0 for cat in CATEGORY_EXTENSIONS}
     category_sizes["Other"] = 0
 
-    # Limit walk depth for performance
-    MAX_DEPTH = 2
-    basedir = home.rstrip(os.sep)
-    start_level = basedir.count(os.sep)
+    # Common folder paths to categories
+    path_categories = {
+        "Pictures": "Photos",
+        "Music": "Music",
+        "Movies": "Videos",
+        "Downloads": "Other",
+        "Documents": "Documents",
+        "Desktop": "Documents",
+        "Applications": "Apps",
+    }
 
+    # Specifically check important folders
+    for folder, category in path_categories.items():
+        folder_path = os.path.join(home, folder)
+        if os.path.isdir(folder_path):
+            try:
+                # Use fast_dir_size for performance
+                from scanner import fast_dir_size
+                size = fast_dir_size(folder_path)
+                category_sizes[category] += size
+            except Exception:
+                pass
+
+    # Shallow walk for anything else in home root
     try:
-        for root, dirs, files in os.walk(home, followlinks=False):
-            level = root.count(os.sep) - start_level
-            if level >= MAX_DEPTH:
-                # Don't go deeper into subdirectories
-                dirs[:] = []
-            
-            # Skip hidden and high-traffic dirs
-            dirs[:] = [d for d in dirs if not d.startswith(".") and d not in {"node_modules", "Library", "Applications", "Pictures", "Music"}]
-            
-            for f in files:
-                if f.startswith("."):
-                    continue
-                filepath = os.path.join(root, f)
+        for f in os.listdir(home):
+            if f.startswith("."): continue
+            filepath = os.path.join(home, f)
+            if os.path.isfile(filepath):
                 try:
                     size = os.path.getsize(filepath)
                     ext = os.path.splitext(f)[1].lower()
@@ -64,6 +74,10 @@ def categorize_home_storage():
                     category_sizes[cat] += size
                 except (OSError, PermissionError):
                     continue
+            elif os.path.isdir(filepath) and f not in path_categories:
+                # For unknown folders, just add to "Other"
+                from scanner import fast_dir_size
+                category_sizes["Other"] += fast_dir_size(filepath)
     except (PermissionError, OSError):
         pass
 

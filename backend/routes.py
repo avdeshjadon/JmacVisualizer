@@ -15,7 +15,7 @@ import sys
 import shutil
 import time
 from flask import jsonify, request, send_from_directory
-from scanner import scan_directory, format_size, log_scan
+from scanner import scan_directory, format_size, log_scan, fast_dir_size
 from disk_info import get_full_disk_info
 
 # ─── Terminal Colors ─────────────────────────────────────────
@@ -102,6 +102,29 @@ def register_routes(app):
         info = get_full_disk_info()
         log_api("  OK", "/api/disk-info", f"{GREEN}Total: {format_size(info.get('total', 0))}{NC}")
         return jsonify(info)
+
+    @app.route("/api/clean-targets")
+    def api_clean_targets():
+        """Get sizes of common cleanup targets."""
+        log_api("GET", "/api/clean-targets", "Calculating cleanup sizes")
+        home = os.path.expanduser("~")
+        
+        targets = [
+            {"id": "user_caches", "name": "User Caches", "path": os.path.join(home, "Library/Caches"), "icon": "⚡"},
+            {"id": "user_logs", "name": "User Logs", "path": os.path.join(home, "Library/Logs"), "icon": "📄"},
+            {"id": "trash", "name": "Trash", "path": os.path.join(home, ".Trash"), "icon": "🗑️"},
+            {"id": "downloads", "name": "Downloads", "path": os.path.join(home, "Downloads"), "icon": "📥"},
+        ]
+        
+        results = []
+        for t in targets:
+            if os.path.exists(t["path"]):
+                size = fast_dir_size(t["path"])
+                results.append({**t, "size": size, "exists": True})
+            else:
+                results.append({**t, "size": 0, "exists": False})
+                
+        return jsonify(results)
 
     @app.route("/api/delete", methods=["POST"])
     def api_delete():

@@ -271,7 +271,7 @@ export default function App() {
         onRefresh={handleRefresh}
       />
 
-      <StorageOverview />
+      <StorageOverview onNavigate={handleClickDirectory} />
 
       <main className="main-content">
         <ChartContainer
