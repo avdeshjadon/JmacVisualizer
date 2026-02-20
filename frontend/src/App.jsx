@@ -27,6 +27,7 @@ export default function App() {
   const [chartData, setChartData] = useState(null)
   const [currentRoot, setCurrentRoot] = useState(null)
   const [breadcrumbParts, setBreadcrumbParts] = useState([{ name: '~', path: '' }])
+  const [scanCache, setScanCache] = useState({}) // Cache for scan results
 
   // Center info state
   const [centerName, setCenterName] = useState('Home')
@@ -89,7 +90,22 @@ export default function App() {
     }
   }
 
-  async function loadAndRender(path, depth = 3, pushHistory = true) {
+  async function loadAndRender(path, depth = 3, pushHistory = true, isRefresh = false) {
+    // Check cache first if not a refresh
+    const cacheKey = `${path || 'home'}_${depth}`
+    if (!isRefresh && scanCache[cacheKey]) {
+      const data = scanCache[cacheKey]
+      currentPathRef.current = data.path
+      setChartData(data)
+      updateBreadcrumb(data.path)
+      updateCenterInfoFromData(data)
+      setLoading(false)
+      
+      // Trigger background pre-fetch even on cache hit
+      backgroundPreFetch(data)
+      return
+    }
+
     setLoading(true)
     setLoadingText(`Scanning ${path || 'home'}…`)
     try {
@@ -98,11 +114,46 @@ export default function App() {
       setChartData(data)
       updateBreadcrumb(data.path)
       updateCenterInfoFromData(data)
+      
+      // Update cache
+      setScanCache(prev => ({ ...prev, [cacheKey]: data }))
+      
+      // Trigger background pre-fetch
+      backgroundPreFetch(data)
     } catch (err) {
       console.error('Scan failed:', err)
       setLoadingText('Error: ' + err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  /**
+   * Background pre-fetcher: fetches next level for immediate children
+   */
+  async function backgroundPreFetch(data) {
+    if (!data || !data.children) return
+    
+    // Extract directories that aren't cached yet
+    const dirsToFetch = data.children
+      .filter(item => item.type === 'directory' && item.path)
+      .filter(item => !scanCache[`${item.path}_3`])
+      .slice(0, 5) // Limit concurrent background fetches
+
+    for (const dir of dirsToFetch) {
+      // Small delay to let UI breathe
+      await new Promise(r => setTimeout(r, 500))
+      
+      const cacheKey = `${dir.path}_3`
+      if (scanCache[cacheKey]) continue
+
+      try {
+        console.log(`[Background] Pre-fetching ${dir.name}...`)
+        const subData = await fetchScan(dir.path, 3)
+        setScanCache(prev => ({ ...prev, [cacheKey]: subData }))
+      } catch (err) {
+        console.warn(`[Background] Failed to pre-fetch ${dir.path}:`, err)
+      }
     }
   }
 
@@ -124,7 +175,7 @@ export default function App() {
 
   function handleRefresh() {
     if (currentPathRef.current) {
-      loadAndRender(currentPathRef.current, 3, false)
+      loadAndRender(currentPathRef.current, 3, false, true)
     } else {
       init()
     }
