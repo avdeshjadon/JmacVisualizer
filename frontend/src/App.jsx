@@ -187,17 +187,17 @@ export default function App() {
       setRootNode(root)
       if (!resetCenter) {
         setCenterName(d.data.name)
-        setCenterSize(formatSize(d.value))
+        setCenterSize(formatSize(d.data.size || d.value))
         setCenterItems(d.children ? `${d.children.length} items` : undefined)
       } else {
         // Mouseleave: keep sidebar, reset center to root
         setCenterName(root.data.name)
-        setCenterSize(formatSize(root.value))
+        setCenterSize(formatSize(root.data.size || root.value))
         setCenterItems(root.children ? `${root.children.length} items` : '0 items')
       }
     } else if (root) {
       setCenterName(root.data.name)
-      setCenterSize(formatSize(root.value))
+      setCenterSize(formatSize(root.data.size || root.value))
       setCenterItems(root.children ? `${root.children.length} items` : '0 items')
     }
   }
@@ -281,6 +281,7 @@ export default function App() {
           centerItems={centerItems || 'Click to explore'}
           tooltipRef={tooltipRef}
           onHoverNode={handleHoverNode}
+          onRootDelete={promptDelete}
           onClickDirectory={handleClickDirectory}
           onGoBack={handleGoBack}
         />

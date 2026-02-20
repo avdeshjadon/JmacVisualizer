@@ -11,7 +11,7 @@ import React, { useEffect, useRef } from 'react'
 import { getColor } from '../../utils/colors'
 import { formatSize } from '../../utils/helpers'
 
-const BG = 'radial-gradient(circle at 50% 30%, #1a1a2e 0%, #000005 100%)'
+const BG = 'transparent'
 
 export default function SunburstChart({ data, width, height, onHoverNode, onClickNode, onGoBack }) {
   const svgRef = useRef(null)
@@ -175,7 +175,7 @@ export default function SunburstChart({ data, width, height, onHoverNode, onClic
       ref={svgRef}
       width={width}
       height={height}
-      style={{ overflow: 'visible', background: BG }}
+      style={{ overflow: 'visible' }}
     />
   )
 }

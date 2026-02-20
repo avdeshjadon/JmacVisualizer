@@ -9,6 +9,7 @@ export default function ChartContainer({
   centerItems,
   tooltipRef,
   onHoverNode,
+  onRootDelete,
   onClickDirectory,
   onGoBack,
 }) {
@@ -119,6 +120,22 @@ export default function ChartContainer({
 
   return (
     <div className="chart-container glass-panel" id="chart-container" ref={containerRef}>
+      <div className="chart-actions">
+        {data && data.path && (
+          <button 
+            className="btn btn-delete-root" 
+            onClick={() => onRootDelete && data && onRootDelete(data.path, data.size)}
+            title={`Delete entire ${data.name} folder`}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '6px'}}>
+              <path d="M3 6h18" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            Delete entire {data.name}
+          </button>
+        )}
+      </div>
       <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
         <SunburstChart 
           data={data} 

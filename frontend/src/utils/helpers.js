@@ -22,6 +22,14 @@ export function formatSizeGB(bytes) {
 }
 
 export function getPercentage(d, root) {
-  if (!root || root.value === 0) return 0;
-  return (d.value / root.value) * 100;
+  const val =
+    d && d.data && d.data.size !== undefined ? d.data.size : d ? d.value : 0;
+  const total =
+    root && root.data && root.data.size !== undefined
+      ? root.data.size
+      : root
+        ? root.value
+        : 0;
+  if (!total || total === 0) return 0;
+  return (val / total) * 100;
 }
