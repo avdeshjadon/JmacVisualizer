@@ -94,9 +94,6 @@ export default function App() {
     setLoadingText(`Scanning ${path || 'home'}…`)
     try {
       const data = await fetchScan(path, depth)
-      if (pushHistory && currentPathRef.current) {
-        setNavigationHistory(prev => [...prev, currentPathRef.current])
-      }
       currentPathRef.current = data.path
       setChartData(data)
       updateBreadcrumb(data.path)
@@ -159,7 +156,20 @@ export default function App() {
   }
 
   function handleBreadcrumbClick(path) {
-    if (path) loadAndRender(path)
+    if (path !== undefined) loadAndRender(path)
+  }
+
+  function handleGoBack() {
+    if (!currentPathRef.current) return
+    const path = currentPathRef.current
+    if (path === '/' || path === '') return
+    
+    // Find parent path
+    const parts = path.split('/').filter(Boolean)
+    if (parts.length === 0) return
+    parts.pop()
+    const parent = '/' + parts.join('/')
+    loadAndRender(parent)
   }
 
   function handleRootChange(path) {
@@ -221,7 +231,7 @@ export default function App() {
           tooltipRef={tooltipRef}
           onHoverNode={handleHoverNode}
           onClickDirectory={handleClickDirectory}
-          onGoBack={handleRefresh}
+          onGoBack={handleGoBack}
         />
 
         <Sidebar

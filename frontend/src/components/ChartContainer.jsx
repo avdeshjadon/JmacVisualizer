@@ -1,27 +1,6 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
 import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { formatSize, getPercentage } from '../utils/helpers'
 import SunburstChart from './charts/SunburstChart'
-import TreemapChart from './charts/TreemapChart'
-import CirclePackChart from './charts/CirclePackChart'
-import CityChart from './charts/CityChart'
-import SplitView from './charts/SplitView'
-
-// Chart types
-const CHART_TYPES = [
-  { id: 'sunburst', label: 'Sunburst', icon: '◎' },
-  { id: 'treemap', label: 'Treemap', icon: '⊞' },
-  { id: 'circlepack', label: 'Circle Pack', icon: '○' },
-  { id: 'city', label: 'City', icon: '◫' },
-]
 
 export default function ChartContainer({
   data,
@@ -34,24 +13,7 @@ export default function ChartContainer({
   onGoBack,
 }) {
   const containerRef = useRef(null)
-  const [chartType, setChartType] = useState('sunburst')
-  const [isSplit, setIsSplit] = useState(false)
-  const [isClosing, setIsClosing] = useState(false)
-  const [splitSearch, setSplitSearch] = useState('')
   const [dimensions, setDimensions] = useState({ width: 600, height: 600 })
-
-  // Reset split view when switching folders or charts
-  useEffect(() => { setIsSplit(false); setIsClosing(false); setSplitSearch('') }, [data, chartType])
-
-  // Close split with reverse animation: animate out → then unmount
-  function closeSplit() {
-    setIsClosing(true)
-    setTimeout(() => {
-      setIsSplit(false)
-      setIsClosing(false)
-      setSplitSearch('')
-    }, 520) // slightly longer than animation duration
-  }
 
   // Handle Resize
   useEffect(() => {
@@ -76,11 +38,10 @@ export default function ChartContainer({
       hideTooltip()
     }
     // Propagate to parent (Sidebar updates)
-    // Note: Some charts might pass null for root if not applicable, handle gracefully
     onHoverNode(d, root)
   }, [onHoverNode])
 
-  // Tooltip Logic (moved from render function)
+  // Tooltip Logic
   function showTooltip(evt, d, root) {
     const el = tooltipRef.current
     if (!el) return
@@ -105,10 +66,10 @@ export default function ChartContainer({
       <div class="tt-path">${d.data.path}</div>
     `
     
-    // For directories, show top children (Plan: Rich Tooltip)
+    // For directories, show top children
     if (isDir && d.children) {
       const topChildren = [...d.children]
-        .sort((a, b) => (b.data.size || 0) - (a.data.size || 0)) // Sort by actual size
+        .sort((a, b) => (b.data.size || 0) - (a.data.size || 0))
         .slice(0, 5)
       
       let listHtml = '<div class="tt-files">'
@@ -158,147 +119,16 @@ export default function ChartContainer({
 
   return (
     <div className="chart-container glass-panel" id="chart-container" ref={containerRef}>
-      
-      {/* Chart Type Selector */}
-      <div className="chart-selector">
-        {/* Split button — not for treemap */}
-        {chartType !== 'treemap' && data && data.children && data.children.length > 0 && (
-          <button
-            className={`chart-type-btn ${isSplit ? 'active' : ''}`}
-            onClick={() => isSplit ? closeSplit() : setIsSplit(true)}
-            title={isSplit ? 'Close Split View' : 'Split — scatter children for readability'}
-            style={{ fontSize: '16px', marginRight: 4 }}
-          >
-            {isSplit ? '✕' : '⊹'}
-          </button>
-        )}
-        <div style={{width: 1, background: 'var(--glass-border)', margin: '0 4px', alignSelf: 'stretch'}} />
-        {CHART_TYPES.map(type => (
-          <button 
-            key={type.id}
-            className={`chart-type-btn ${!isSplit && chartType === type.id ? 'active' : ''}`}
-            onClick={() => { setChartType(type.id); setIsSplit(false) }}
-            title={type.label}
-          >
-            {type.icon}
-          </button>
-        ))}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+        <SunburstChart 
+          data={data} 
+          width={dimensions.width} 
+          height={dimensions.height}
+          onHoverNode={handleHoverNode}
+          onClickNode={onClickDirectory}
+          onGoBack={onGoBack}
+        />
       </div>
-
-      {/* Search bar — visible only in split mode */}
-      {isSplit && (
-        <div style={{
-          position: 'absolute',
-          top: 8,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 10,
-          width: '320px',
-          display: 'flex',
-          alignItems: 'center',
-          background: 'rgba(255,255,255,0.06)',
-          border: '1px solid rgba(255,255,255,0.15)',
-          borderRadius: '24px',
-          padding: '6px 14px',
-          backdropFilter: 'blur(12px)',
-          gap: 8,
-        }}>
-          <span style={{ fontSize: 14, opacity: 0.6 }}>🔍</span>
-          <input
-            autoFocus
-            type="text"
-            placeholder="Search folders…"
-            value={splitSearch}
-            onChange={e => setSplitSearch(e.target.value)}
-            style={{
-              background: 'none',
-              border: 'none',
-              outline: 'none',
-              color: '#fff',
-              fontSize: '13px',
-              width: '100%',
-              fontFamily: 'inherit',
-            }}
-          />
-          {splitSearch && (
-            <button
-              onClick={() => setSplitSearch('')}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 0, fontSize: 14 }}
-            >✕</button>
-          )}
-        </div>
-      )}
-
-      {isSplit && chartType !== 'treemap' && (
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 5,
-          transition: 'opacity 500ms ease-in-out',
-          opacity: isClosing ? 0 : 1,
-          pointerEvents: isClosing ? 'none' : 'auto',
-        }}>
-          <SplitView
-            data={data}
-            width={dimensions.width}
-            height={dimensions.height}
-            chartType={chartType}
-            searchQuery={splitSearch}
-            isClosing={isClosing}
-            onHoverNode={handleHoverNode}
-            onClickNode={onClickDirectory}
-          />
-        </div>
-      )}
-
-      {/* Normal Charts — always rendered, visible behind split overlay */}
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 1,
-        transition: 'opacity 350ms ease-in-out',
-        opacity: (isSplit && !isClosing) ? 0 : 1,
-        pointerEvents: (isSplit && !isClosing) ? 'none' : 'auto',
-      }}>
-        {chartType === 'sunburst' && (
-          <SunburstChart 
-            data={data} 
-            width={dimensions.width} 
-            height={dimensions.height}
-            onHoverNode={handleHoverNode}
-            onClickNode={onClickDirectory}
-            onGoBack={onGoBack}
-          />
-        )}
-
-        {chartType === 'treemap' && (
-          <TreemapChart 
-            data={data} 
-            width={dimensions.width} 
-            height={dimensions.height}
-            onHoverNode={handleHoverNode}
-            onClickNode={onClickDirectory}
-          />
-        )}
-        
-        {chartType === 'circlepack' && (
-          <CirclePackChart 
-            data={data} 
-            width={dimensions.width} 
-            height={dimensions.height}
-            onHoverNode={handleHoverNode}
-            onClickNode={onClickDirectory}
-          />
-        )}
-
-        {chartType === 'city' && (
-          <CityChart 
-            data={data} 
-            width={dimensions.width} 
-            height={dimensions.height}
-            onHoverNode={handleHoverNode}
-            onClickNode={onClickDirectory}
-            onGoBack={onGoBack}
-          />
-        )}
-      </div>
-
     </div>
   )
 }
