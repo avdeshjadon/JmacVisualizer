@@ -30,28 +30,6 @@ CATEGORY_EXTENSIONS = {
         ".txt", ".rtf", ".pages", ".numbers", ".keynote", ".csv",
         ".odt", ".ods", ".odp",
     },
-    "Photos": {
-        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif",
-        ".heic", ".heif", ".raw", ".cr2", ".nef", ".webp", ".svg",
-        ".ico", ".psd", ".ai",
-    },
-    "Videos": {
-        ".mp4", ".mov", ".avi", ".mkv", ".wmv", ".flv", ".webm",
-        ".m4v", ".mpg", ".mpeg", ".3gp",
-    },
-    "Music": {
-        ".mp3", ".wav", ".flac", ".aac", ".ogg", ".wma", ".m4a",
-        ".aiff", ".alac",
-    },
-    "Developer": {
-        ".py", ".js", ".ts", ".jsx", ".tsx", ".html", ".css",
-        ".scss", ".json", ".xml", ".yaml", ".yml", ".sh", ".swift",
-        ".java", ".c", ".cpp", ".h", ".rb", ".go", ".rs", ".php",
-        ".kt", ".m", ".dart", ".r", ".sql", ".graphql", ".proto",
-        ".toml", ".ini", ".cfg", ".conf", ".env", ".gitignore",
-        ".dockerfile", ".makefile", ".gradle", ".cmake",
-        ".o", ".so", ".dylib", ".a", ".class", ".jar", ".war",
-    },
     "Archives": {
         ".zip", ".tar", ".gz", ".rar", ".7z", ".bz2", ".xz",
         ".tgz", ".iso",
@@ -60,15 +38,12 @@ CATEGORY_EXTENSIONS = {
 
 # Colors for each storage category (used in the storage bar)
 CATEGORY_COLORS = {
-    "Apps":       "#00cec9",
-    "Documents":  "#6c5ce7",
-    "Photos":     "#e84393",
-    "Videos":     "#d63031",
-    "Music":      "#e17055",
-    "Developer":  "#0984e3",
-    "Archives":   "#fdcb6e",
-    "System":     "#636e72",
-    "Other":      "#b2bec3",
+    "Apps":        "#ff3b30", # Red
+    "Documents":   "#ff9500", # Orange
+    "System Data": "#8e8e93", # Gray
+    "macOS":       "#48484a", # Dark Gray
+    "Other":       "#c7c7cc", # Silver
+    "Archives":    "#5ac8fa", # Light Blue
 }
 
 # Server config

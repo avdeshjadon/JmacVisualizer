@@ -12,10 +12,6 @@ import { fetchDiskInfo } from '../utils/api'
 import { formatSize, formatSizeGB } from '../utils/helpers'
 
 const CATEGORY_PATHS = {
-  'Photos': '/Pictures',
-  'Music': '/Music',
-  'Videos': '/Movies',
-  'Downloads': '/Downloads',
   'Documents': '/Documents',
   'Apps': '/Applications',
 }
@@ -121,7 +117,10 @@ export default function StorageOverview({ onNavigate }) {
           {/* Free Segment */}
           <div 
             className="storage-segment free-segment"
-            style={{ width: `${(data.free / data.total * 100)}%` }}
+            style={{ 
+              width: `${(data.free / data.total * 100)}%`,
+              background: 'rgba(255,255,255,0.05)'
+            }}
           >
             <div className="storage-segment-tooltip">
               <div className="tooltip-header">
@@ -138,7 +137,7 @@ export default function StorageOverview({ onNavigate }) {
       </div>
 
       <div className="storage-legend">
-        {data.categories.slice(0, 6).map(cat => (
+        {data.categories.map(cat => (
           <div className="storage-legend-item" key={cat.name}>
             <span className="storage-legend-dot" style={{ background: cat.color }}></span>
             <span className="name">{cat.name}</span>
@@ -146,7 +145,7 @@ export default function StorageOverview({ onNavigate }) {
           </div>
         ))}
         <div className="storage-legend-item">
-          <span className="storage-legend-dot free"></span>
+          <span className="storage-legend-dot" style={{ background: 'rgba(255,255,255,0.2)' }}></span>
           <span className="name">Free</span>
           <span className="storage-legend-size">{formatSizeGB(data.free)}</span>
         </div>
