@@ -57,7 +57,7 @@ def register_routes(app):
             path  — directory to scan (default: home)
             depth — recursion depth (default: 4, max: 10)
         """
-        scan_path = request.args.get("path", os.path.expanduser("~"))
+        scan_path = request.args.get("path", "/Users")
         depth = int(request.args.get("depth", 4))
         depth = min(depth, 10)
 

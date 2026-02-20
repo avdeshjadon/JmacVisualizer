@@ -47,7 +47,7 @@ export default function Sidebar({ hoveredNode, rootNode, onDelete, onNavigate })
             Directory Contents
           </h3>
           <div className="sidebar-section-content">
-            <FolderList root={rootNode} onNavigate={onNavigate} />
+            <FolderList root={rootNode} onDelete={onDelete} onNavigate={onNavigate} />
           </div>
         </section>
 
@@ -61,7 +61,7 @@ export default function Sidebar({ hoveredNode, rootNode, onDelete, onNavigate })
             Largest Items
           </h3>
           <div className="sidebar-section-content">
-            <TopFilesList root={rootNode} onNavigate={onNavigate} />
+            <TopFilesList root={rootNode} onDelete={onDelete} onNavigate={onNavigate} />
           </div>
         </section>
 
@@ -85,7 +85,7 @@ export default function Sidebar({ hoveredNode, rootNode, onDelete, onNavigate })
   )
 }
 
-function FolderList({ root, onNavigate }) {
+function FolderList({ root, onDelete, onNavigate }) {
   if (!root || !root.children) return <div className="empty-state">Empty directory</div>
 
   const sorted = [...root.children].sort((a, b) => {
@@ -117,6 +117,20 @@ function FolderList({ root, onNavigate }) {
             </div>
             <div className="row-right">
               <span className="row-size">{size}</span>
+              {d.data.path && (
+                <button 
+                  className="btn-row-delete" 
+                  title="Delete Item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(d.data.path, d.data.size || d.value);
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         )
@@ -198,7 +212,7 @@ function SidebarDetail({ d, root, onDelete }) {
   )
 }
 
-function TopFilesList({ root, onNavigate }) {
+function TopFilesList({ root, onDelete, onNavigate }) {
   if (!root || !root.children) return <div className="empty-state">No items found</div>
 
   const allNodes = []
@@ -236,6 +250,20 @@ function TopFilesList({ root, onNavigate }) {
             </div>
             <div className="row-right">
               <span className="row-size">{formatSize(currentSize)}</span>
+              {d.data.path && (
+                <button 
+                  className="btn-row-delete" 
+                  title="Delete Item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(d.data.path, currentSize);
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         )

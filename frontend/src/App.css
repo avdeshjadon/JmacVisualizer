@@ -1954,3 +1954,30 @@ body::after {
   border-radius: 50%;
   flex-shrink: 0;
 }
+
+.btn-row-delete {
+  padding: 6px;
+  border: none;
+  background: rgba(255, 71, 87, 0);
+  color: var(--danger);
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.row-item:hover .btn-row-delete {
+  opacity: 1;
+  background: rgba(255, 71, 87, 0.05);
+}
+
+.btn-row-delete:hover {
+  background: var(--danger) !important;
+  color: white !important;
+  box-shadow: 0 0 10px var(--danger-glow);
+  transform: scale(1.1);
+}

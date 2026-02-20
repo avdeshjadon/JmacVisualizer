@@ -46,17 +46,6 @@ export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRo
         </div>
       </div>
       <div className="header-right">
-        <select
-          id="root-selector"
-          className="root-selector"
-          defaultValue=""
-          onChange={(e) => { if (e.target.value) onRootChange(e.target.value); }}
-        >
-          <option value="">Select location…</option>
-          {roots.map((r) => (
-            <option key={r.path} value={r.path}>{r.name}</option>
-          ))}
-        </select>
         <button id="refresh-btn" className="btn btn-ghost" title="Refresh scan" onClick={onRefresh}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="23 4 23 10 17 10" />

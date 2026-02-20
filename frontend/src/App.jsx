@@ -26,7 +26,7 @@ export default function App() {
   const [roots, setRoots] = useState([])
   const [chartData, setChartData] = useState(null)
   const [currentRoot, setCurrentRoot] = useState(null)
-  const [breadcrumbParts, setBreadcrumbParts] = useState([{ name: '~', path: '' }])
+  const [breadcrumbParts, setBreadcrumbParts] = useState([{ name: 'Users', path: '/Users' }])
   const [scanCache, setScanCache] = useState({}) // Cache for scan results
 
   // Center info state
