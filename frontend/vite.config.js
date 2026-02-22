@@ -7,19 +7,19 @@
  *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
  * ═══════════════════════════════════════════════════════════
  */
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: '/static/',
+  base: "./",
   server: {
     proxy: {
-      '/api': 'http://127.0.0.1:5005',
+      "/api": "http://127.0.0.1:5005",
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     emptyOutDir: true,
   },
-})
+});

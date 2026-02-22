@@ -12,20 +12,14 @@ A Flask web application that scans your filesystem and presents
 an interactive animated sunburst chart with storage management.
 """
 
+import os
 import threading
-import webbrowser
 import time
 from flask import Flask
 from routes import register_routes
 from config import HOST, PORT
 
-import os
-
-# Use absolute paths for stability
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend", "dist"))
-
-app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="/static")
+app = Flask(__name__)
 
 # Register all API routes
 register_routes(app)
