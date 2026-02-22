@@ -13,15 +13,18 @@ export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRo
   return (
     <header className="header">
       <div className="header-left">
-        <div className="logo">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="6" />
-            <circle cx="12" cy="12" r="2" />
-            <line x1="12" y1="2" x2="12" y2="6" />
-            <line x1="12" y1="18" x2="12" y2="22" />
-            <line x1="2" y1="12" x2="6" y2="12" />
-            <line x1="18" y1="12" x2="22" y2="12" />
+        <div className="logo tooltip-trigger" title="Jmac Visualizer Logo">
+          <svg viewBox="0 0 100 100" width="30" height="30" fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 6px rgba(124, 92, 252, 0.4))' }}>
+            <defs>
+              <linearGradient id="logo-min-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#7c5cfc" />
+                <stop offset="50%" stopColor="#fc5c8c" />
+                <stop offset="100%" stopColor="#2ed573" />
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="40" stroke="url(#logo-min-grad)" strokeWidth="8" opacity="0.9" strokeDasharray="180 60" />
+            <circle cx="50" cy="50" r="24" stroke="url(#logo-min-grad)" strokeWidth="6" opacity="0.7" strokeDasharray="80 30" transform="rotate(120 50 50)" />
+            <circle cx="50" cy="50" r="8" fill="url(#logo-min-grad)" />
           </svg>
         </div>
         <h1>Jmac Visualizer</h1>
@@ -51,7 +54,7 @@ export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRo
             <polyline points="23 4 23 10 17 10" />
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
           </svg>
-          Refresh
+          Hard Refresh
         </button>
       </div>
     </header>

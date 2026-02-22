@@ -13,13 +13,22 @@ an interactive animated sunburst chart with storage management.
 """
 
 import os
+import sys
 import threading
 import time
 from flask import Flask
 from routes import register_routes
 from config import HOST, PORT
 
-app = Flask(__name__)
+# Determine frontend directory path
+if getattr(sys, 'frozen', False):
+    # Running as compiled executable
+    frontend_dir = os.path.join(sys._MEIPASS, "dist")
+else:
+    # Running from source
+    frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
+
+app = Flask(__name__, static_folder=frontend_dir, static_url_path="")
 
 # Register all API routes
 register_routes(app)

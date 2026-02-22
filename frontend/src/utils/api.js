@@ -29,11 +29,31 @@ export async function fetchDiskInfo() {
   return res.json();
 }
 
-export async function deleteItem(path) {
+export async function deleteItem(path, permanent = false) {
   const res = await fetch(`${API_BASE}/api/delete`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path }),
+    body: JSON.stringify({ path, permanent }),
   });
+  return res.json();
+}
+
+export async function checkPermissions() {
+  const res = await fetch(`${API_BASE}/api/check-permissions`);
+  if (!res.ok) throw new Error(`Check permissions failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function requestPermissions() {
+  const res = await fetch(`${API_BASE}/api/request-permissions`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error(`Request permissions failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchCleanTargets() {
+  const res = await fetch(`${API_BASE}/api/clean-targets`);
+  if (!res.ok) throw new Error(`Fetch clean targets failed: ${res.statusText}`);
   return res.json();
 }

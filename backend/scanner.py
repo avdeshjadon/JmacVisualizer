@@ -28,6 +28,20 @@ def log_scan(msg):
     sys.stderr.flush()
 
 
+def get_finder_size(path):
+    """Fallback to osascript to get size from Finder for SIP-protected folders."""
+    try:
+        abs_path = os.path.abspath(path)
+        # We use POSIX file to handle paths correctly in AppleScript
+        script = f'tell application "Finder" to get size of (POSIX file "{abs_path}")'
+        r = subprocess.run(['osascript', '-e', script], capture_output=True, text=True, timeout=5)
+        if r.stdout.strip() and r.stdout.strip() != 'missing value':
+            return int(r.stdout.strip())
+    except Exception:
+        pass
+    return 0
+
+
 def format_size(b):
     """Format bytes using SI units (1000-based) to match macOS Finder."""
     if b >= 1000**3:
@@ -42,6 +56,8 @@ def format_size(b):
 def du_size(path):
     """Use du -sk as fallback for permission-denied dirs. Ignores exit code."""
     try:
+        # We use -sk to get size in 1024-byte blocks, then multiply to get bytes.
+        # This matches physical disk usage more closely than logical size.
         r = subprocess.run(['du', '-sk', path], capture_output=True, text=True, timeout=60)
         if r.stdout.strip():
             return int(r.stdout.split()[0]) * 1024
@@ -51,23 +67,35 @@ def du_size(path):
 
 
 def fast_dir_size(path):
-    """Fast recursive size using pure Python. Falls back to du on PermissionError."""
+    """Fast recursive physical size using pure Python. Falls back to Finder/du on errors."""
     total = 0
+    # known SIP-protected folders that often report 0 but have data
+    VIP_FOLDERS = {"Messages", "Safari", "Mail", "Photos Library.photoslibrary"}
+    
     try:
         with os.scandir(path) as it:
             for entry in it:
                 try:
+                    st = entry.stat(follow_symlinks=False)
                     if entry.is_file(follow_symlinks=False):
-                        total += entry.stat(follow_symlinks=False).st_size
+                        total += st.st_blocks * 512
                     elif entry.is_dir(follow_symlinks=False) and not entry.is_symlink():
-                        total += fast_dir_size(entry.path)
+                        size = fast_dir_size(entry.path)
+                        # If Python reports nearly 0 for a VIP folder, try Finder fallback
+                        if size < 1024 and entry.name in VIP_FOLDERS:
+                             size = get_finder_size(entry.path)
+                        total += size
                 except (PermissionError, OSError):
-                    # Single child failed — try du on it
-                    if entry.is_dir(follow_symlinks=False):
+                    # Try du or Finder
+                    if entry.name in VIP_FOLDERS:
+                         total += get_finder_size(entry.path)
+                    elif entry.is_dir(follow_symlinks=False):
                         total += du_size(entry.path)
     except (PermissionError, OSError):
-        # Entire dir unreadable — du fallback
-        total = du_size(path)
+        if os.path.basename(path) in VIP_FOLDERS:
+            total = get_finder_size(path)
+        else:
+            total = du_size(path)
     return total
 
 
@@ -124,18 +152,22 @@ def _scan_internal(path, depth=3, max_children=500, _level=0):
         try:
             if entry.name in SKIP_NAMES:
                 continue
+            
+            st = entry.stat(follow_symlinks=False)
+            # Physical size for accuracy
+            s = st.st_blocks * 512
+
             if entry.is_symlink():
                 try:
-                    if os.path.isfile(entry.path):
-                        s = os.stat(entry.path).st_size
-                        ext = os.path.splitext(entry.name)[1].lower()
-                        files.append({"name": entry.name, "path": entry.path, "size": s,
-                                      "type": "file", "extension": ext or ".none"})
+                    # For symlinks, we still want to show where they point but use their own tiny block size
+                    ext = os.path.splitext(entry.name)[1].lower()
+                    files.append({"name": entry.name, "path": entry.path, "size": s,
+                                  "type": "file", "extension": ext or ".none"})
                 except (OSError, PermissionError):
                     pass
                 continue
+            
             if entry.is_file(follow_symlinks=False):
-                s = entry.stat(follow_symlinks=False).st_size
                 ext = os.path.splitext(entry.name)[1].lower()
                 files.append({"name": entry.name, "path": entry.path, "size": s,
                               "type": "file", "extension": ext or ".none"})

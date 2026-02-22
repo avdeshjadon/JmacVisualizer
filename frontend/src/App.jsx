@@ -17,10 +17,12 @@ import Tooltip from './components/Tooltip'
 import DeleteModal from './components/DeleteModal'
 import ToastContainer, { showToast } from './components/ToastContainer'
 import Footer from './components/Footer'
-import { fetchScan, fetchRoots, deleteItem } from './utils/api'
+import PermissionsOverlay from './components/PermissionsOverlay'
+import { fetchScan, fetchRoots, deleteItem, checkPermissions, requestPermissions } from './utils/api'
 import { formatSize } from './utils/helpers'
 
 export default function App() {
+  const [hasPermission, setHasPermission] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loadingText, setLoadingText] = useState('Initializing…')
   const [roots, setRoots] = useState([])
@@ -79,14 +81,49 @@ export default function App() {
 
   async function init() {
     setLoading(true)
-    setLoadingText('Initializing…')
+    setLoadingText('Checking permissions…')
     try {
+      const permRes = await checkPermissions()
+      if (!permRes.fullDiskAccess) {
+        setHasPermission(false)
+        setLoading(false)
+        return
+      }
+      setHasPermission(true)
+      
+      setLoadingText('Initializing…')
       const rootsList = await fetchRoots()
       setRoots(rootsList)
       await loadAndRender(undefined, 3, false)
     } catch (err) {
       console.error('Init failed:', err)
       setLoadingText('Error: ' + err.message)
+    }
+  }
+
+  async function handleCheckRecheck() {
+    setLoading(true)
+    setLoadingText('Checking permissions…')
+    try {
+      const permRes = await checkPermissions()
+      if (permRes.fullDiskAccess) {
+        setHasPermission(true)
+        init()
+      } else {
+        showToast('Full Disk Access is still required.', 'error')
+        setLoading(false)
+      }
+    } catch (err) {
+      showToast('Check failed: ' + err.message, 'error')
+      setLoading(false)
+    }
+  }
+
+  async function handleRequestPermissions() {
+    try {
+      await requestPermissions()
+    } catch (err) {
+      showToast('Could not open settings automatically. Please open System Settings.', 'error')
     }
   }
 
@@ -174,6 +211,10 @@ export default function App() {
   }
 
   function handleRefresh() {
+    console.log('Performing hard refresh...')
+    setScanCache({}) // Clear all scan results
+    window.dispatchEvent(new CustomEvent('refresh-disk')) // Update Storage Bar
+    
     if (currentPathRef.current) {
       loadAndRender(currentPathRef.current, 3, false, true)
     } else {
@@ -232,19 +273,35 @@ export default function App() {
     setDeleteModal({ visible: true, path, size: formatSize(size) })
   }
 
-  async function confirmDelete() {
+  async function confirmDelete(permanent = false) {
     const { path } = pendingDeleteRef.current
     if (!path) return
 
     closeDeleteModal()
-    showToast('Deleting…', 'info', 2000)
+    showToast(`${permanent ? 'Permanently deleting…' : 'Moving to Trash…'}`, 'info', 2000)
 
     try {
-      const result = await deleteItem(path)
+      const result = await deleteItem(path, permanent)
       if (result.success) {
         showToast(result.message, 'success')
+        
+        // Live update: Clear specific cache and re-scan
+        setScanCache(prev => {
+          const next = { ...prev }
+          // Remove potential cached entries for this path and its parent to be safe
+          Object.keys(next).forEach(key => {
+            if (key.startsWith(path) || (currentPathRef.current && key.startsWith(currentPathRef.current))) {
+              delete next[key]
+            }
+          })
+          return next
+        })
+
+        // Refresh disk overview bar
+        window.dispatchEvent(new CustomEvent('refresh-disk'))
+
         if (currentPathRef.current) {
-          await loadAndRender(currentPathRef.current, 3, false)
+          await loadAndRender(currentPathRef.current, 3, false, true)
         }
       } else {
         showToast(result.error || 'Delete failed', 'error')
@@ -257,6 +314,22 @@ export default function App() {
   function closeDeleteModal() {
     setDeleteModal({ visible: false, path: '', size: '' })
     pendingDeleteRef.current = { path: null, size: 0 }
+  }
+
+  if (hasPermission === false) {
+    return (
+      <>
+        <Header
+          breadcrumbParts={[{ name: 'Setup', path: '/' }]}
+          roots={[]}
+          onBreadcrumbClick={() => {}}
+          onRootChange={() => {}}
+          onRefresh={handleCheckRecheck}
+        />
+        <PermissionsOverlay onCheck={handleCheckRecheck} onRequest={handleRequestPermissions} />
+        <ToastContainer />
+      </>
+    )
   }
 
   return (
@@ -302,7 +375,7 @@ export default function App() {
         visible={deleteModal.visible}
         path={deleteModal.path}
         size={deleteModal.size}
-        onConfirm={confirmDelete}
+        onConfirm={(perm) => confirmDelete(perm)}
         onCancel={closeDeleteModal}
       />
 

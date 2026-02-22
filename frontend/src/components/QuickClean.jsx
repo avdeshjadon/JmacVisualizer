@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { formatSize } from '../utils/helpers';
+import { fetchCleanTargets } from '../utils/api';
 
 export default function QuickClean({ onDelete, onRefresh }) {
   const [targets, setTargets] = useState([]);
@@ -11,9 +12,7 @@ export default function QuickClean({ onDelete, onRefresh }) {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/clean-targets');
-      if (!res.ok) throw new Error('Failed to load cleanup targets');
-      const data = await res.json();
+      const data = await fetchCleanTargets();
       setTargets(data);
     } catch (err) {
       console.error('Failed to fetch clean targets:', err);

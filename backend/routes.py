@@ -14,6 +14,7 @@ import os
 import sys
 import shutil
 import time
+import subprocess
 from flask import jsonify, request, send_from_directory
 from scanner import scan_directory, format_size, log_scan, fast_dir_size
 from disk_info import get_full_disk_info
@@ -126,6 +127,35 @@ def register_routes(app):
                 
         return jsonify(results)
 
+    @app.route("/api/check-permissions")
+    def api_check_permissions():
+        """Test for Full Disk Access by attempting to list a protected directory."""
+        log_api("GET", "/api/check-permissions", "Testing Full Disk Access")
+        test_dir = os.path.expanduser("~/Library/Messages")
+        
+        try:
+            # We attempt to list the contents directly. If SIP blocks it, it throws PermissionError.
+            os.listdir(test_dir)
+            log_api("  OK", "/api/check-permissions", f"{GREEN}Access Granted{NC}")
+            return jsonify({"fullDiskAccess": True})
+        except PermissionError:
+            log_api("  ✖", "/api/check-permissions", f"{RED}Access Denied{NC}")
+            return jsonify({"fullDiskAccess": False})
+        except Exception:
+            # If the folder truly doesn't exist for some rare reason, we assume granted.
+            log_api("  OK", "/api/check-permissions", f"{GREEN}Folder Missing (Allowed){NC}")
+            return jsonify({"fullDiskAccess": True})
+
+    @app.route("/api/request-permissions", methods=["POST"])
+    def api_request_permissions():
+        """Open System Settings > Privacy > Full Disk Access on macOS."""
+        log_api("POST", "/api/request-permissions", "Opening System Settings")
+        try:
+            subprocess.run(["open", "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"], check=True)
+            return jsonify({"success": True})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
     @app.route("/api/delete", methods=["POST"])
     def api_delete():
         """Delete a file or directory."""
@@ -134,7 +164,8 @@ def register_routes(app):
             return jsonify({"error": "No path specified"}), 400
 
         target = data["path"]
-        log_api("DEL", "/api/delete", f"{RED}{target}{NC}")
+        permanent = data.get("permanent", False)
+        log_api("DEL", "/api/delete", f"{RED}{target}{NC} (permanent={permanent})")
 
         # Safety checks
         home = os.path.expanduser("~")
@@ -144,20 +175,25 @@ def register_routes(app):
             log_api("  ✖", "/api/delete", f"{RED}BLOCKED — critical path{NC}")
             return jsonify({"error": "Cannot delete critical system path"}), 403
 
-        if not os.path.exists(target):
-            return jsonify({"error": "Path does not exist"}), 404
-
         try:
-            if os.path.isdir(target):
-                shutil.rmtree(target)
+            abs_target = os.path.abspath(target)
+            if permanent:
+                # Permanent deletion
+                if os.path.isdir(abs_target):
+                    shutil.rmtree(abs_target)
+                else:
+                    os.remove(abs_target)
+                log_api("  ✔", "/api/delete", f"{GREEN}Permanently Deleted: {os.path.basename(target)}{NC}")
+                return jsonify({"success": True, "message": f"Permanently Deleted: {os.path.basename(target)}"})
             else:
-                os.remove(target)
-
-            log_api("  ✔", "/api/delete", f"{GREEN}Deleted successfully{NC}")
-            return jsonify({"success": True, "message": f"Deleted: {os.path.basename(target)}"})
-        except PermissionError:
-            log_api("  ✖", "/api/delete", f"{RED}Permission denied{NC}")
-            return jsonify({"error": "Permission denied"}), 403
+                # Native macOS Move to Trash via AppleScript
+                script = f'tell application "Finder" to move (POSIX file "{abs_target}") to trash'
+                subprocess.run(["osascript", "-e", script], check=True)
+                log_api("  ✔", "/api/delete", f"{GREEN}Moved to Trash: {os.path.basename(target)}{NC}")
+                return jsonify({"success": True, "message": f"Moved to Trash: {os.path.basename(target)}"})
+        except subprocess.CalledProcessError:
+            log_api("  ✖", "/api/delete", f"{RED}AppleScript failed (check permissions){NC}")
+            return jsonify({"error": "macOS blocked the trash operation. Check permissions."}), 403
         except Exception as e:
             log_api("  ✖", "/api/delete", f"{RED}{str(e)}{NC}")
             return jsonify({"error": str(e)}), 500

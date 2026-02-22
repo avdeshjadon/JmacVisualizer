@@ -7,9 +7,16 @@
  *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
  * ═══════════════════════════════════════════════════════════
  */
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 
 export default function DeleteModal({ visible, path, size, onConfirm, onCancel }) {
+  const [permanent, setPermanent] = useState(false)
+
+  // Reset when visibility changes
+  useEffect(() => {
+    if (visible) setPermanent(false)
+  }, [visible])
+
   return (
     <div
       className={`modal-overlay${visible ? ' visible' : ''}`}
@@ -29,10 +36,25 @@ export default function DeleteModal({ visible, path, size, onConfirm, onCancel }
         <h3 className="modal-title">Delete this item?</h3>
         <p className="modal-path" id="delete-modal-path">{path}</p>
         <p className="modal-size" id="delete-modal-size">{size}</p>
-        <p className="modal-warning">This will move the item to Trash</p>
+        
+        <div className="modal-permanent-option">
+          <label className="checkbox-container">
+            <input 
+              type="checkbox" 
+              checked={permanent} 
+              onChange={(e) => setPermanent(e.target.checked)} 
+            />
+            <span className="checkmark"></span>
+            Delete permanently (bypass Trash)
+          </label>
+        </div>
+
+        <p className="modal-warning">
+          {permanent ? "WARNING: This cannot be undone!" : "This will move the item to Trash"}
+        </p>
         <div className="modal-actions">
           <button className="btn btn-ghost" id="delete-cancel" onClick={onCancel}>Cancel</button>
-          <button className="btn btn-danger" id="delete-confirm" onClick={onConfirm}>
+          <button className="btn btn-danger" id="delete-confirm" onClick={() => onConfirm(permanent)}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 6h18" />
               <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
