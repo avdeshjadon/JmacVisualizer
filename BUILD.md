@@ -4,18 +4,37 @@ Follow these steps in your terminal to create the final native macOS `.app` bund
 
 ## 1. Bundle the Python Backend
 
+You can structure the Python dependencies either using a virtual environment (recommended) or globally.
+
+### Option A: Using a Virtual Environment (Recommended)
+
 ```bash
 cd backend
 
-# Create the python virtual environment (if not already done)
+# Create and activate the virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-# Install dependencies
+# Install dependencies in the isolated environment
 pip install -r requirements.txt
 pip install pyinstaller
 
-# Build the standalone binary directory from app.py
+# Build the binary
+pyinstaller --name app --clean --noconfirm --onedir app.py
+```
+
+### Option B: Using Global Python (Easy)
+
+If you don't want to use virtual environments and face a "externally-managed-environment" error on macOS, you can force the installation globally:
+
+```bash
+cd backend
+
+# Install dependencies globally
+pip install -r requirements.txt --break-system-packages
+pip install pyinstaller --break-system-packages
+
+# Build the binary
 pyinstaller --name app --clean --noconfirm --onedir app.py
 ```
 

@@ -19,7 +19,6 @@ lerna-debug.log*
 
 # Electron Builder packaging
 frontend/dist/**
-frontend/build/**
 frontend/release/**
 frontend/out/**
 
@@ -48,5 +47,4 @@ backend/pip-delete-this-directory.txt
 .project
 .settings/
 
-# Backup
-static_backup/
+

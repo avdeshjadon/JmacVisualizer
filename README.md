@@ -8,39 +8,30 @@ A stunning, retro-inspired disk space visualizer for macOS. Visualize your files
 
 ## 🪐 Features
 
-- **Retro PC Scanner**: A nostalgic CRT-style loading animation with a scanning laser.
-- **Interactive City View**: Visualize your storage as a 3D isometric city.
-- **Smart Treemap Layout**: Files are scaled proportionally for visibility while emphasizing large culprits.
-- **One-Click Launcher**: Robust `start.sh` script that manages the server and a standalone Chrome window.
-- **Auto-Cleanup**: Closing the app window automatically shuts down the background server.
+- **Retro PC Scanner**: A nostalgic loading animation with an interactive file tree.
+- **Interactive City View**: Visualize your storage as a stunning 3D isometric city.
+- **Native macOS Experience**: Runs as a standalone `.app` bundled with Electron—no terminal required.
+- **Auto-Managed Backend**: The integrated Python/Flask backend process spawns and dies with the app cleanly.
 - **Precise Analysis**: Accurate file sizing including hidden system directories.
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React, Vite, D3.js, Vanilla CSS.
-- **Backend**: Python, Flask.
-- **Automation**: Bash, AppleScript for window monitoring.
+- **Frontend**: React, Vite, Electron, Vanilla CSS.
+- **Backend**: Python, Flask, PyInstaller.
 
 ## 🚀 Quick Start
 
-1.  Make sure you have **Python 3** and **Node.js** installed.
-2.  Clone the repository and enter the directory.
-3.  Run the launcher:
-    ```bash
-    chmod +x start.sh
-    ./start.sh
-    ```
+To launch JmacVisualizer on your Mac, grab the latest `.dmg` or `.app.zip` release from the [Releases page](https://github.com/avdeshjadon/JmacVisualizer/releases), unzip it, and drag it to your `/Applications` directory!
 
 ## 📜 Documentation
 
-- [Setup Guide](SETUP.md)
-- [Implementation Plan](README.md#architecture)
+- [Local Development Setup](SETUP.md)
+- [Building the Production App](BUILD.md)
 
 ## 📁 Project Structure
 
-- **backend/**: Python server, scanner logic, and API routes.
-- **frontend/**: React interface, 3D city visualization, and assets.
-- **start.sh**: Master launcher for macOS.
+- **backend/**: Python server, scanner logic, API routes, and PyInstaller configs.
+- **frontend/**: React interface, Electron `main.js`, and Vite configuration.
 
 ## 👤 Author
 

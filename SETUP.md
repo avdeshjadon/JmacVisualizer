@@ -1,14 +1,13 @@
 # Setup Guide ⚙️
 
-This guide will help you get **JmacVisualizer** running on your macOS system.
+This guide will help you get **JmacVisualizer** running in a local development environment on your macOS system.
 
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
 
 - **Python 3.8+**: [python.org](https://www.python.org/downloads/)
-- **Node.js 16+**: [nodejs.org](https://nodejs.org/)
-- **Google Chrome**: (Or Brave/Chromium) for the standalone app experience.
+- **Node.js 20+**: [nodejs.org](https://nodejs.org/)
 
 ## 📥 Installation
 
@@ -19,48 +18,45 @@ Before you begin, ensure you have the following installed:
     cd JmacVisualizer
     ```
 
-2.  **Make Launcher Executable**:
-    ```bash
-    chmod +x start.sh
-    ```
+## 🚀 Running in Development Mode
 
-## 🚀 Running the App
+Since this is an Electron app with a Python child process, you need to run two separate processes during development to get hot module reloading.
 
-Simply run the launcher script from your terminal:
+### 1. Start the Python Backend API
 
-```bash
-./start.sh
-```
-
-### What `start.sh` does:
-
-1.  **Checks Prerequisites**: Verifies Python and Node.js.
-2.  **Installs Dependencies**: Automatically installs Flask and Node modules if missing.
-3.  **Builds the Frontend**: Compiles the React/Vite assets.
-4.  **Launches Server**: Boots up the Flask backend on `127.0.0.1:5005`.
-5.  **Opens App Window**: Displays the visualizer in a standalone, dedicated Chrome window.
-
-## 🔧 Troubleshooting
-
-### "Terminal wants to control System Events"
-
-On first run, macOS may ask for permission to allow the terminal to monitor windows. **Click OK**. This is required so the terminal can automatically shut down the server when you close the app window.
-
-### "Chrome Not Found"
-
-The script looks for Google Chrome in `/Applications`. If you use a different path or browser, you can modify the `CHROME_APP` path in `start.sh`.
-
-### Manual Cleanup
-
-If for some reason the server keeps running after you close the app, you can manually stop it:
+In your first terminal tab, initialize and run the Flask server:
 
 ```bash
-lsof -ti:5005 | xargs kill -9
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python3 app.py
 ```
+
+_The API will start running on `http://127.0.0.1:5005`._
+
+### 2. Start the Frontend Vite/Electron App
+
+In your second terminal tab, install the NPM dependencies and start the Electron watcher:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+_The Electron app will boot up and load the hot-reloading Vite server._
+
+## 📦 Building the Standalone App
+
+When you are ready to distribute JmacVisualizer as a `.app` bundle that users can double click:
+
+Please follow the comprehensive instructions located in the [**BUILD.md**](BUILD.md) file in the root of the repository.
 
 ## 🛠️ Developer Configuration
 
 Settings for the scanner can be found in `backend/config.py`. You can adjust:
 
 - `SKIP_DIRS`: Directories to ignore during scanning.
-- `PORT`: The port the server runs on.
+- `PORT`: The port the backend server runs on.
