@@ -15,6 +15,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
+  "author": "Avdesh Jadon",
+  "description": "A beautiful animated disk space visualizer for macOS.",
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
     "electron": "^40.6.0",
@@ -30,7 +32,8 @@
         "zip",
         "dir"
       ],
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "icon": "build/icon.icns"
     },
     "extraResources": [
       {
