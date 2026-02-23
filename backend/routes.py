@@ -1,13 +1,31 @@
-# ═══════════════════════════════════════════════════════════
-#  Built with ♥ by Avdesh Jadon
-#  GitHub: https://github.com/avdeshjadon
-#
-#  This software is free to use. If you find it helpful:
-#  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
-# ═══════════════════════════════════════════════════════════
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║              J M A C   V I S U A L I Z E R                      ║
+# ║         macOS Disk Usage Analyzer & Storage Manager             ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  Author      : Avdesh Jadon                                      ║
+# ║  GitHub      : https://github.com/avdeshjadon                   ║
+# ║  License     : MIT — Free to use, modify, and distribute        ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  If this project helped you:                                     ║
+# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
+# ╚══════════════════════════════════════════════════════════════════╝
 """
-Flask route handlers for the Jmac Visualizer API.
-Includes terminal logging for all API requests.
+routes.py — REST API Route Handlers
+=====================================
+Defines and registers all HTTP endpoints for the Jmac Visualizer
+backend. Each route is logged to stderr with colour-coded output
+for easy terminal monitoring.
+
+Endpoints:
+    GET  /                        → Serve the frontend SPA (index.html)
+    GET  /health                  → Quick liveness check
+    GET  /api/scan                → Recursive filesystem scan
+    GET  /api/roots               → List available mount points / root dirs
+    GET  /api/disk-info           → Total, used, free + categorized breakdown
+    GET  /api/clean-targets       → Sizes of common cleanup targets
+    GET  /api/check-permissions   → Detect macOS Full Disk Access
+    POST /api/request-permissions → Open Privacy settings in System Preferences
+    POST /api/delete              → Move to Trash or permanently delete a path
 """
 
 import os

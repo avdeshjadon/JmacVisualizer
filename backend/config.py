@@ -1,12 +1,28 @@
-# ═══════════════════════════════════════════════════════════
-#  Built with ♥ by Avdesh Jadon
-#  GitHub: https://github.com/avdeshjadon
-#
-#  This software is free to use. If you find it helpful:
-#  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
-# ═══════════════════════════════════════════════════════════
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║              J M A C   V I S U A L I Z E R                      ║
+# ║         macOS Disk Usage Analyzer & Storage Manager             ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  Author      : Avdesh Jadon                                      ║
+# ║  GitHub      : https://github.com/avdeshjadon                   ║
+# ║  License     : MIT — Free to use, modify, and distribute        ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  If this project helped you:                                     ║
+# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
+# ╚══════════════════════════════════════════════════════════════════╝
 """
-Configuration constants for Disk Visualizer.
+config.py — Application Configuration & Constants
+==================================================
+Central configuration file for Jmac Visualizer. All tuneable
+parameters, category mappings, and colour tokens live here so
+that the rest of the codebase stays free of magic values.
+
+Constants defined:
+    SKIP_DIRS            — Virtual/system directories excluded from scanning
+    SKIP_NAMES           — File/folder names always ignored (e.g. .DS_Store)
+    CATEGORY_EXTENSIONS  — Maps file extensions to storage categories
+    CATEGORY_COLORS      — Hex colour codes for each storage category
+    HOST                 — Flask bind address (127.0.0.1)
+    PORT                 — Flask listen port  (5005)
 """
 
 # Directories to skip during scanning (virtual filesystems, caches, etc.)

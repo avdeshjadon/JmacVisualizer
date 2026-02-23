@@ -1,15 +1,29 @@
 #!/usr/bin/env python3
-# ═══════════════════════════════════════════════════════════
-#  Built with ♥ by Avdesh Jadon
-#  GitHub: https://github.com/avdeshjadon
-#
-#  This software is free to use. If you find it helpful:
-#  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
-# ═══════════════════════════════════════════════════════════
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║              J M A C   V I S U A L I Z E R                      ║
+# ║         macOS Disk Usage Analyzer & Storage Manager             ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  Author      : Avdesh Jadon                                      ║
+# ║  GitHub      : https://github.com/avdeshjadon                   ║
+# ║  License     : MIT — Free to use, modify, and distribute        ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  If this project helped you:                                     ║
+# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
+# ╚══════════════════════════════════════════════════════════════════╝
 """
-Jmac Visualizer — Entry Point
-A Flask web application that scans your filesystem and presents
-an interactive animated sunburst chart with storage management.
+app.py — Application Entry Point
+=================================
+Bootstraps the Jmac Visualizer Flask server. Resolves the frontend
+dist path for both source and PyInstaller-frozen (compiled) builds,
+registers all API routes, and starts the HTTP server.
+
+Usage:
+    python app.py                 # Development mode
+    ./JmacVisualizer              # Compiled executable (via makeapp.sh)
+
+Server:
+    Host : 127.0.0.1  (localhost only — never exposed externally)
+    Port : 5005       (configurable via config.py)
 """
 
 import os

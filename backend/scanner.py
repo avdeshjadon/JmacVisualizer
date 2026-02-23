@@ -1,12 +1,36 @@
-# ═══════════════════════════════════════════════════════════
-#  Built with ♥ by Avdesh Jadon
-#  GitHub: https://github.com/avdeshjadon
-#
-#  This software is free to use. If you find it helpful:
-#  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
-# ═══════════════════════════════════════════════════════════
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║              J M A C   V I S U A L I Z E R                      ║
+# ║         macOS Disk Usage Analyzer & Storage Manager             ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  Author      : Avdesh Jadon                                      ║
+# ║  GitHub      : https://github.com/avdeshjadon                   ║
+# ║  License     : MIT — Free to use, modify, and distribute        ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  If this project helped you:                                     ║
+# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
+# ╚══════════════════════════════════════════════════════════════════╝
 """
-Filesystem scanner — fast recursive scanning with du fallback only for permission-denied dirs.
+scanner.py — High-Performance Filesystem Scanner
+=================================================
+Provides fast, recursive directory scanning optimised for macOS.
+Uses physical block size (st_blocks × 512) to accurately match
+the "Size on Disk" reported by macOS Finder.
+
+Scanning Strategy (priority order):
+    1. Pure Python  os.scandir()  — fastest, zero subprocess overhead
+    2. Finder AppleScript fallback — for SIP-protected VIP folders
+       (Messages, Safari, Mail, Photos Library)
+    3. BSD  du -sk  fallback      — when PermissionError is raised
+
+Caching:
+    Results are cached in-process with a 5-minute TTL to avoid
+    redundant disk I/O on repeated API calls for the same path.
+
+Public API:
+    scan_directory(path, depth, max_children)  → dict tree
+    fast_dir_size(path)                         → int bytes
+    format_size(bytes)                          → str  (e.g. "1.23 GB")
+    log_scan(msg)                               → stderr pretty-print
 """
 
 import os

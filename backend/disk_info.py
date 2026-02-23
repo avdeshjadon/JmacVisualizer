@@ -1,12 +1,32 @@
-# ═══════════════════════════════════════════════════════════
-#  Built with ♥ by Avdesh Jadon
-#  GitHub: https://github.com/avdeshjadon
-#
-#  This software is free to use. If you find it helpful:
-#  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
-# ═══════════════════════════════════════════════════════════
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║              J M A C   V I S U A L I Z E R                      ║
+# ║         macOS Disk Usage Analyzer & Storage Manager             ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  Author      : Avdesh Jadon                                      ║
+# ║  GitHub      : https://github.com/avdeshjadon                   ║
+# ║  License     : MIT — Free to use, modify, and distribute        ║
+# ╠══════════════════════════════════════════════════════════════════╣
+# ║  If this project helped you:                                     ║
+# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
+# ╚══════════════════════════════════════════════════════════════════╝
 """
-Disk information — total/used/free space and storage categorization.
+disk_info.py — Disk Usage & Storage Categorization
+====================================================
+Provides high-level disk information functions used by the /api/disk-info
+endpoint. Combines shutil-based total/used/free reporting with a
+parallel-threaded, extension-aware categorization scan of the user's
+home directory and common system locations.
+
+Categorization approach:
+    • Apps        — /Applications + ~/Applications  (parallel scan)
+    • Documents   — ~/Documents + ~/Desktop         (parallel scan)
+    • System Data — ~/Library                        (parallel scan)
+    • Other       — ~/Downloads, ~/Movies, ~/Music … (parallel scan)
+    • macOS       — Estimated from remaining used space (capped 20 GB)
+
+Public API:
+    get_disk_usage()     → {total, used, free}
+    get_full_disk_info() → {total, used, free, categories: [...]}
 """
 
 import os
