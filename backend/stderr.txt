@@ -1,1 +1,0 @@
-du: /Users/avdeshjadon/Library/Application Support/CallHistoryTransactions: Operation not permitted
