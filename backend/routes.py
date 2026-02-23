@@ -90,6 +90,83 @@ def log_api(method, endpoint, detail=""):
     sys.stderr.flush()
 
 
+def _rm_robust(target: str):
+    """Remove *target* (file or directory) as robustly as possible on macOS.
+
+    Strategy
+    --------
+    1.  Try macOS native ``/bin/rm -rf`` via subprocess.  The BSD rm binary
+        handles SIP-locked xattrs and immutable flags better than Python's
+        shutil.rmtree.  If rm exits 0 the item is completely gone.
+
+    2.  If the target still exists after rm (meaning rm was entirely blocked
+        by SIP / kernel protection), report 0 deleted and return immediately
+        so the caller can surface a clear 403.
+
+    3.  If the target *partially* exists (rm deleted some children but not
+        all), fall back to a depth-first walk that attempts each leaf
+        individually and records what it could or could not remove.
+
+    Returns
+    -------
+    (deleted_count, skipped_paths) where:
+        deleted_count   -- number of items (files + dirs) successfully removed.
+        skipped_paths   -- list[str] of paths that could not be removed.
+    """
+    target = os.path.abspath(target)
+    deleted_count = 0
+    skipped_paths = []
+
+    # ── Tier 1: native rm -rf ────────────────────────────────────────────────
+    result = subprocess.run(
+        ["/bin/rm", "-rf", target],
+        capture_output=True,
+        text=True
+    )
+
+    # ── Tier 2: check if target is fully gone ────────────────────────────────
+    if not os.path.exists(target):
+        # rm succeeded completely
+        deleted_count = 1
+        return deleted_count, skipped_paths
+
+    if result.returncode != 0 and not os.path.isdir(target):
+        # Single file / not a dir — rm failed entirely
+        skipped_paths.append(target)
+        return 0, skipped_paths
+
+    # ── Tier 3: partial deletion — walk and clean up what's left ─────────────
+    # rm already removed what it could; now handle the leftovers one-by-one.
+    for dirpath, dirnames, filenames in os.walk(target, topdown=False):
+        for fname in filenames:
+            fpath = os.path.join(dirpath, fname)
+            try:
+                os.remove(fpath)
+                deleted_count += 1
+            except OSError:
+                skipped_paths.append(fpath)
+
+        for dname in list(dirnames):
+            dpath = os.path.join(dirpath, dname)
+            if os.path.exists(dpath):
+                # Attempt rmdir (works if directory is now empty)
+                try:
+                    os.rmdir(dpath)
+                    deleted_count += 1
+                except OSError:
+                    skipped_paths.append(dpath)
+
+    # Try to remove the root dir now (it may be empty after the walk)
+    if os.path.exists(target):
+        try:
+            os.rmdir(target)
+            deleted_count += 1
+        except OSError:
+            skipped_paths.append(target)
+
+    return deleted_count, skipped_paths
+
+
 def register_routes(app):
     """Register all routes on the Flask app."""
 
@@ -230,32 +307,21 @@ def register_routes(app):
         try:
             abs_target = os.path.abspath(target)
             if permanent:
-                # Permanent deletion with graceful skip of SIP-protected entries.
-                # shutil.rmtree(onerror=...) is called for each entry that raises
-                # an OSError so that one blocked subdirectory does not abort the
-                # entire operation.
-                skipped = []
+                deleted_count, skipped_paths = _rm_robust(abs_target)
 
-                def _onerror(func, path, exc_info):
-                    """Log and skip any file/dir that cannot be removed."""
-                    skipped.append(path)
+                if deleted_count == 0 and skipped_paths:
+                    # Nothing could be deleted at all
+                    msg = f"Operation not permitted — all items are SIP-protected"
+                    log_api("  ✖", "/api/delete", f"{RED}{msg}{NC}")
+                    return jsonify({"error": msg}), 403
 
-                if os.path.isdir(abs_target):
-                    shutil.rmtree(abs_target, onerror=_onerror)
-                else:
-                    try:
-                        os.remove(abs_target)
-                    except OSError as e:
-                        log_api("  ✖", "/api/delete", f"{RED}Cannot remove file: {e}{NC}")
-                        return jsonify({"error": str(e)}), 500
-
-                if skipped:
-                    msg = f"Partially deleted (skipped {len(skipped)} protected item(s))"
+                if skipped_paths:
+                    msg = f"Partially deleted ({len(skipped_paths)} protected item(s) skipped)"
                     log_api("  ✔", "/api/delete", f"{GREEN}{msg}: {os.path.basename(target)}{NC}")
-                    return jsonify({"success": True, "message": msg, "skipped": skipped})
+                    return jsonify({"success": True, "message": msg, "skipped": [str(p) for p in skipped_paths]})
 
-                log_api("  ✔", "/api/delete", f"{GREEN}Permanently Deleted: {os.path.basename(target)}{NC}")
-                return jsonify({"success": True, "message": f"Permanently Deleted: {os.path.basename(target)}"})
+                log_api("  ✔", "/api/delete", f"{GREEN}Permanently deleted: {os.path.basename(target)}{NC}")
+                return jsonify({"success": True, "message": f"Permanently deleted: {os.path.basename(target)}"})
             else:
                 # Native macOS Move to Trash via AppleScript
                 script = f'tell application "Finder" to move (POSIX file "{abs_target}") to trash'
@@ -268,3 +334,4 @@ def register_routes(app):
         except Exception as e:
             log_api("  ✖", "/api/delete", f"{RED}{str(e)}{NC}")
             return jsonify({"error": str(e)}), 500
+
