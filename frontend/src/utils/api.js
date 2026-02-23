@@ -75,3 +75,30 @@ export async function fetchCleanTargets() {
   if (!res.ok) throw new Error(`Fetch clean targets failed: ${res.statusText}`);
   return res.json();
 }
+
+/**
+ * subscribeToEvents(onEvent) -- Connect to the /api/events SSE stream.
+ *
+ * The browser's native EventSource automatically reconnects on disconnect.
+ * onEvent receives a parsed JSON object for each event from the server.
+ *
+ * Returns a cleanup function: call it to close the connection.
+ */
+export function subscribeToEvents(onEvent) {
+  const source = new EventSource(`${API_BASE}/api/events`);
+
+  source.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      onEvent(data);
+    } catch (_) {
+      // ignore malformed messages
+    }
+  };
+
+  source.onerror = () => {
+    // EventSource handles reconnection automatically — no action needed
+  };
+
+  return () => source.close();
+}

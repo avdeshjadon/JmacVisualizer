@@ -66,10 +66,17 @@ import os
 import sys
 import shutil
 import time
+import json
 import subprocess
-from flask import jsonify, request, send_from_directory
-from scanner import scan_directory, format_size, log_scan, fast_dir_size
+from flask import jsonify, request, send_from_directory, Response, stream_with_context
+from flask import jsonify, request, send_from_directory, Response, stream_with_context
+from scanner import scan_directory, format_size, log_scan, fast_dir_size, invalidate_cache
 from disk_info import get_full_disk_info
+try:
+    from watcher import SSE_QUEUE
+except ImportError:
+    import queue
+    SSE_QUEUE = queue.Queue()  # fallback if watchdog not installed
 
 # ─── Terminal Colors ─────────────────────────────────────────
 CYAN = "\033[0;36m"
@@ -91,80 +98,168 @@ def log_api(method, endpoint, detail=""):
 
 
 def _rm_robust(target: str):
-    """Remove *target* (file or directory) as robustly as possible on macOS.
+    """Remove *target* as robustly as possible on macOS.
 
     Strategy
     --------
-    1.  Try macOS native ``/bin/rm -rf`` via subprocess.  The BSD rm binary
-        handles SIP-locked xattrs and immutable flags better than Python's
-        shutil.rmtree.  If rm exits 0 the item is completely gone.
+    1.  /bin/rm -rf  (BSD rm — handles xattrs / immutable flags better than Python)
+        - exit 0  → fully deleted → success
+        - exit 1  → partially blocked (SIP protected some children) → partial success
+                    rm DID delete everything it could; what remains is SIP-locked
 
-    2.  If the target still exists after rm (meaning rm was entirely blocked
-        by SIP / kernel protection), report 0 deleted and return immediately
-        so the caller can surface a clear 403.
+    2.  Single-file fallback — if target is not a dir and rm failed, report blocked.
 
-    3.  If the target *partially* exists (rm deleted some children but not
-        all), fall back to a depth-first walk that attempts each leaf
-        individually and records what it could or could not remove.
+    3.  After partial rm: collect what's still there (the SIP survivors) as skipped_paths.
+        Also try Python rmdir on any now-empty parent dirs rm left behind.
 
     Returns
     -------
-    (deleted_count, skipped_paths) where:
-        deleted_count   -- number of items (files + dirs) successfully removed.
-        skipped_paths   -- list[str] of paths that could not be removed.
+    (deleted_count, skipped_paths)
+        deleted_count > 0  → at least some content was removed
+        deleted_count == 0 → nothing could be removed at all (fully SIP-blocked)
+        skipped_paths      → list of paths rm / Python could not remove
     """
     target = os.path.abspath(target)
-    deleted_count = 0
     skipped_paths = []
 
-    # ── Tier 1: native rm -rf ────────────────────────────────────────────────
+    # ── Tier 1: native /bin/rm -rf ───────────────────────────────────────────
     result = subprocess.run(
         ["/bin/rm", "-rf", target],
-        capture_output=True,
-        text=True
+        capture_output=True, text=True
     )
 
-    # ── Tier 2: check if target is fully gone ────────────────────────────────
+    # ── Fully gone → complete success ────────────────────────────────────────
     if not os.path.exists(target):
-        # rm succeeded completely
-        deleted_count = 1
-        return deleted_count, skipped_paths
+        return 1, []
 
-    if result.returncode != 0 and not os.path.isdir(target):
-        # Single file / not a dir — rm failed entirely
-        skipped_paths.append(target)
-        return 0, skipped_paths
+    # ── Single file that rm couldn't touch → fully blocked ───────────────────
+    if not os.path.isdir(target):
+        return 0, [target]
 
-    # ── Tier 3: partial deletion — walk and clean up what's left ─────────────
-    # rm already removed what it could; now handle the leftovers one-by-one.
+    # ── Directory still exists after rm ──────────────────────────────────────
+    # rm already deleted everything it could (exit 1 = partial SIP block).
+    # Collect what's left (the protected survivors) as skipped.
+    # Also try Python rmdir() on any directories rm left empty.
+    deleted_count = 1
     for dirpath, dirnames, filenames in os.walk(target, topdown=False):
-        for fname in filenames:
-            fpath = os.path.join(dirpath, fname)
+        for f in filenames:
+            skipped_paths.append(os.path.join(dirpath, f))
+        for d in dirnames:
+            d_path = os.path.join(dirpath, d)
             try:
-                os.remove(fpath)
-                deleted_count += 1
+                os.rmdir(d_path)
             except OSError:
-                skipped_paths.append(fpath)
+                skipped_paths.append(d_path)
+
+    try:
+        os.rmdir(target)
+        skipped_paths = []
+    except OSError:
+        skipped_paths.append(target)
+
+    return deleted_count, skipped_paths
+
+
+def _trash_robust(target: str):
+    """Move *target* to ~/.Trash robustly, handling SIP-protected partial blocks.
+
+    Strategy
+    --------
+    1.  Try shutil.move() whole directory to Trash.
+    2.  If OSError (e.g. Operation not permitted), iterate deep and move
+        what we can file-by-file, recreating the folder structure in Trash.
+
+    Returns
+    -------
+    (deleted_count, skipped_paths)
+    """
+    target = os.path.abspath(target)
+    home = os.path.expanduser("~")
+    trash_dir = os.path.join(home, ".Trash")
+    skipped_paths = []
+
+    def get_safe_dest(base_dest_path):
+        """Returns a unique path in Truth without overwriting."""
+        if not os.path.exists(base_dest_path):
+            return base_dest_path
+        folder = os.path.dirname(base_dest_path)
+        basename = os.path.basename(base_dest_path)
+        name_base, ext = os.path.splitext(basename)
+        counter = 1
+        new_dest = os.path.join(folder, f"{name_base} {counter}{ext}")
+        while os.path.exists(new_dest):
+            counter += 1
+            new_dest = os.path.join(folder, f"{name_base} {counter}{ext}")
+        return new_dest
+
+    basename = os.path.basename(target)
+    primary_dest = get_safe_dest(os.path.join(trash_dir, basename))
+
+    try:
+        shutil.move(target, primary_dest)
+        return 1, []  # success entirely
+    except Exception:
+        # Move failed (likely SIP blocking part of it). Fallback to deep iteration.
+        pass
+
+    if not os.path.isdir(target):
+        return 0, [target]
+
+    moved_count = 0
+    # Walk bottom-up to clean up empty dirs
+    for dirpath, dirnames, filenames in os.walk(target, topdown=False):
+        rel_dir = os.path.relpath(dirpath, target)
+        if rel_dir == ".":
+            dest_dir = primary_dest
+        else:
+            dest_dir = os.path.join(primary_dest, rel_dir)
+
+        # Ensure destination directory structure exists in Trash
+        os.makedirs(dest_dir, exist_ok=True)
+
+        for fname in filenames:
+            src_file = os.path.join(dirpath, fname)
+            dest_file = get_safe_dest(os.path.join(dest_dir, fname))
+            try:
+                shutil.move(src_file, dest_file)
+                moved_count += 1
+            except Exception as e:
+                skipped_paths.append((src_file, dest_file, str(e)))
 
         for dname in list(dirnames):
-            dpath = os.path.join(dirpath, dname)
-            if os.path.exists(dpath):
-                # Attempt rmdir (works if directory is now empty)
+            src_d = os.path.join(dirpath, dname)
+            if os.path.exists(src_d):
                 try:
-                    os.rmdir(dpath)
-                    deleted_count += 1
+                    os.rmdir(src_d)
                 except OSError:
-                    skipped_paths.append(dpath)
+                    # Directory not empty, means SIP protected files are inside
+                    skipped_paths.append((src_d, "", "Dir not empty"))
 
-    # Try to remove the root dir now (it may be empty after the walk)
+    # Try root itself
     if os.path.exists(target):
         try:
             os.rmdir(target)
-            deleted_count += 1
         except OSError:
-            skipped_paths.append(target)
+            skipped_paths.append((target, "", "Root dir not empty"))
 
-    return deleted_count, skipped_paths
+    return moved_count, skipped_paths
+
+
+
+
+
+
+def _push_sse_deleted(path: str):
+    """Push a 'deleted' SSE event into the queue for connected browser clients."""
+    try:
+        event = json.dumps({
+            "type": "deleted",
+            "path": path,
+            "root": os.path.dirname(path),
+        })
+        SSE_QUEUE.put_nowait(f"data: {event}\n\n")
+    except Exception:
+        pass  # Non-fatal — SSE is best-effort
 
 
 def register_routes(app):
@@ -178,6 +273,42 @@ def register_routes(app):
     @app.route("/health")
     def health():
         return jsonify({"status": "OK", "port": 5005})
+
+    @app.route("/api/events")
+    def api_events():
+        """Server-Sent Events endpoint — streams filesystem change events.
+
+        Clients (browser EventSource) connect once and receive a continuous
+        stream of newline-delimited JSON objects:
+
+            data: {"type": "connected", "message": "Live updates active"}\n\n
+            data: {"type": "deleted",   "path": "...", "root": "..."}\n\n
+
+        The browser reconnects automatically if the connection drops.
+        """
+        log_api("GET", "/api/events", "SSE client connected")
+
+        def event_stream():
+            # Send a heartbeat immediately so the browser knows the connection is alive
+            yield f"data: {json.dumps({'type': 'connected', 'message': 'Live updates active'})}\n\n"
+            while True:
+                try:
+                    # Block up to 20 s waiting for an event, then send a keepalive
+                    msg = SSE_QUEUE.get(timeout=20)
+                    yield msg
+                except Exception:
+                    # Timeout — send a keepalive comment so nginx/proxies don't close idle connections
+                    yield ": keepalive\n\n"
+
+        return Response(
+            stream_with_context(event_stream()),
+            mimetype="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",  # disable nginx buffering
+                "Connection": "keep-alive",
+            }
+        )
 
     @app.route("/api/scan")
     def api_scan():
@@ -306,31 +437,55 @@ def register_routes(app):
 
         try:
             abs_target = os.path.abspath(target)
+            basename   = os.path.basename(abs_target)
+
             if permanent:
                 deleted_count, skipped_paths = _rm_robust(abs_target)
 
                 if deleted_count == 0 and skipped_paths:
-                    # Nothing could be deleted at all
-                    msg = f"Operation not permitted — all items are SIP-protected"
+                    msg = "Operation not permitted — all items are SIP-protected"
                     log_api("  ✖", "/api/delete", f"{RED}{msg}{NC}")
                     return jsonify({"error": msg}), 403
 
                 if skipped_paths:
                     msg = f"Partially deleted ({len(skipped_paths)} protected item(s) skipped)"
-                    log_api("  ✔", "/api/delete", f"{GREEN}{msg}: {os.path.basename(target)}{NC}")
+                    log_api("  ✔", "/api/delete", f"{GREEN}{msg}: {basename}{NC}")
+                    invalidate_cache(abs_target)
+                    invalidate_cache(os.path.dirname(abs_target))
+                    _push_sse_deleted(abs_target)
                     return jsonify({"success": True, "message": msg, "skipped": [str(p) for p in skipped_paths]})
 
-                log_api("  ✔", "/api/delete", f"{GREEN}Permanently deleted: {os.path.basename(target)}{NC}")
-                return jsonify({"success": True, "message": f"Permanently deleted: {os.path.basename(target)}"})
+                log_api("  ✔", "/api/delete", f"{GREEN}Permanently deleted: {basename}{NC}")
+                invalidate_cache(abs_target)
+                invalidate_cache(os.path.dirname(abs_target))
+                _push_sse_deleted(abs_target)
+                return jsonify({"success": True, "message": f"Permanently deleted: {basename}"})
+
             else:
-                # Native macOS Move to Trash via AppleScript
-                script = f'tell application "Finder" to move (POSIX file "{abs_target}") to trash'
-                subprocess.run(["osascript", "-e", script], check=True)
-                log_api("  ✔", "/api/delete", f"{GREEN}Moved to Trash: {os.path.basename(target)}{NC}")
-                return jsonify({"success": True, "message": f"Moved to Trash: {os.path.basename(target)}"})
-        except subprocess.CalledProcessError:
-            log_api("  ✖", "/api/delete", f"{RED}AppleScript failed (check permissions){NC}")
-            return jsonify({"error": "macOS blocked the trash operation. Check permissions."}), 403
+                # ── Move to Trash (Python-native robust fallback) ──────────────
+                deleted_count, skipped_paths = _trash_robust(abs_target)
+
+                if deleted_count == 0 and skipped_paths:
+                    msg = "Operation not permitted — all items are SIP-protected"
+                    log_api("  ✖", "/api/delete", f"{RED}{msg}{NC}")
+                    # Log precisely what failed for debugging
+                    sys.stderr.write(f"  {DIM}└─ {skipped_paths[0]}{NC}\n")
+                    return jsonify({"error": msg}), 403
+
+                if skipped_paths:
+                    msg = f"Partially trashed ({len(skipped_paths)} protected item(s) skipped)"
+                    log_api("  ✔", "/api/delete", f"{GREEN}{msg}: {basename}{NC}")
+                    invalidate_cache(abs_target)
+                    invalidate_cache(os.path.dirname(abs_target))
+                    _push_sse_deleted(abs_target)
+                    return jsonify({"success": True, "message": msg, "skipped": [str(p) for p in skipped_paths]})
+
+                log_api("  ✔", "/api/delete", f"{GREEN}Moved to Trash: {basename}{NC}")
+                invalidate_cache(abs_target)
+                invalidate_cache(os.path.dirname(abs_target))
+                _push_sse_deleted(abs_target)
+                return jsonify({"success": True, "message": f"Moved to Trash: {basename}"})
+
         except Exception as e:
             log_api("  ✖", "/api/delete", f"{RED}{str(e)}{NC}")
             return jsonify({"error": str(e)}), 500

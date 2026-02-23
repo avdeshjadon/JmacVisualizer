@@ -36,11 +36,15 @@ Server configuration:
 
 import os
 import sys
-import threading
-import time
 from flask import Flask
 from routes import register_routes
 from config import HOST, PORT
+
+try:
+    from watcher import start_watcher, stop_watcher
+    _WATCHER_AVAILABLE = True
+except ImportError:
+    _WATCHER_AVAILABLE = False
 
 # Determine frontend directory path
 if getattr(sys, 'frozen', False):
@@ -57,10 +61,20 @@ register_routes(app)
 
 
 if __name__ == "__main__":
-    print("\n🔍 Jmac Visualizer")
+    print("\nJmac Visualizer")
     print("=" * 40)
-    print(f"Starting server at http://{HOST}:{PORT}")
-    print("Press Ctrl+C to stop\n")
+    print(f"Server    : http://{HOST}:{PORT}")
 
-    app.run(host="127.0.0.1", port=PORT, debug=False)
+    # Start the macOS FSEvents watcher for live UI updates
+    if _WATCHER_AVAILABLE:
+        try:
+            start_watcher()
+            print("Watcher   : FSEvents live updates active")
+        except Exception as e:
+            print(f"Watcher   : disabled ({e})")
+    else:
+        print("Watcher   : disabled (watchdog not installed)")
+
+    print("Press Ctrl+C to stop\n")
+    app.run(host="127.0.0.1", port=PORT, debug=False, threaded=True)
 

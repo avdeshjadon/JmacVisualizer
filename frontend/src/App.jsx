@@ -99,6 +99,24 @@ export default function App() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  // SSE: listen for filesystem change events (e.g. deletes) pushed by the backend
+  useEffect(() => {
+    const unsub = subscribeToEvents((event) => {
+      if (event.type === 'deleted') {
+        // Clear entire cache from frontend to ensure fresh ancestor sizes recalculate
+        setScanCache({})
+        // Re-scan the current view so the chart updates
+        if (currentPathRef.current) {
+          loadAndRender(currentPathRef.current, 3, false, true)
+        }
+        // Refresh disk overview bar
+        window.dispatchEvent(new CustomEvent('refresh-disk'))
+      }
+    })
+    return unsub
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   async function init() {
     setLoading(true)
     setLoadingText('Checking permissions…')
@@ -316,17 +334,8 @@ export default function App() {
       if (result.success) {
         showToast(result.message, 'success')
         
-        // Live update: Clear specific cache and re-scan
-        setScanCache(prev => {
-          const next = { ...prev }
-          // Remove potential cached entries for this path and its parent to be safe
-          Object.keys(next).forEach(key => {
-            if (key.startsWith(path) || (currentPathRef.current && key.startsWith(currentPathRef.current))) {
-              delete next[key]
-            }
-          })
-          return next
-        })
+        // Live update: Clear cache and re-scan
+        setScanCache({})
 
         // Refresh disk overview bar
         window.dispatchEvent(new CustomEvent('refresh-disk'))
