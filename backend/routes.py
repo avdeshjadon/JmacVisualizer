@@ -1,31 +1,65 @@
-# ╔══════════════════════════════════════════════════════════════════╗
-# ║              J M A C   V I S U A L I Z E R                      ║
-# ║         macOS Disk Usage Analyzer & Storage Manager             ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  Author      : Avdesh Jadon                                      ║
-# ║  GitHub      : https://github.com/avdeshjadon                   ║
-# ║  License     : MIT — Free to use, modify, and distribute        ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  If this project helped you:                                     ║
-# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
-# ╚══════════════════════════════════════════════════════════════════╝
+# ----------------------------------------------------------------------------
+# Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+# ----------------------------------------------------------------------------
+# Author   : Avdesh Jadon
+# GitHub   : https://github.com/avdeshjadon
+# License  : MIT License -- free to use, modify, and distribute.
+#            See LICENSE file in the project root for full license text.
+# ----------------------------------------------------------------------------
+# If this project helped you, consider starring the repository, opening a
+# pull request, or reporting issues on GitHub. Contributions are welcome.
+# ----------------------------------------------------------------------------
 """
-routes.py — REST API Route Handlers
-=====================================
-Defines and registers all HTTP endpoints for the Jmac Visualizer
-backend. Each route is logged to stderr with colour-coded output
-for easy terminal monitoring.
+routes.py -- REST API Route Handlers
+======================================
+Defines and registers all HTTP endpoints for the Jmac Visualizer backend
+on a given Flask application instance. Every incoming request is logged to
+stderr with colour-coded output so the developer can monitor activity in the
+terminal without needing a separate log file.
 
-Endpoints:
-    GET  /                        → Serve the frontend SPA (index.html)
-    GET  /health                  → Quick liveness check
-    GET  /api/scan                → Recursive filesystem scan
-    GET  /api/roots               → List available mount points / root dirs
-    GET  /api/disk-info           → Total, used, free + categorized breakdown
-    GET  /api/clean-targets       → Sizes of common cleanup targets
-    GET  /api/check-permissions   → Detect macOS Full Disk Access
-    POST /api/request-permissions → Open Privacy settings in System Preferences
-    POST /api/delete              → Move to Trash or permanently delete a path
+All routes are registered inside register_routes(app) to keep the app
+factory pattern clean and testable.
+
+Endpoints
+---------
+GET  /
+    Serve the compiled frontend single-page application (index.html).
+    Static assets (JS, CSS) are served automatically by Flask from the
+    configured static_folder.
+
+GET  /health
+    Lightweight liveness probe. Returns {"status": "OK", "port": 5005}.
+
+GET  /api/scan
+    Recursively scan a directory tree and return a JSON node tree with
+    name, path, size (bytes), type, and children for each entry.
+    Query params: path (default /Users), depth (default 4, max 10).
+
+GET  /api/roots
+    Return a list of common filesystem roots and user directories that
+    are used to populate the root-selector dropdown in the UI.
+
+GET  /api/disk-info
+    Return total, used, and free disk space for the root volume along
+    with a categorized breakdown (Apps, Documents, System Data, etc.).
+
+GET  /api/clean-targets
+    Calculate sizes of well-known cleanup targets: User Caches, User
+    Logs, Trash, and Downloads folder.
+
+GET  /api/check-permissions
+    Probe whether the process has Full Disk Access by attempting to list
+    ~/Library/Messages. Returns {"fullDiskAccess": true|false}.
+
+POST /api/request-permissions
+    Open the macOS System Settings Privacy pane so the user can grant
+    Full Disk Access. Uses 'open' with an x-apple.systempreferences URL.
+
+POST /api/delete
+    Delete a file or directory. Supports two modes:
+      permanent=true  -- shutil.rmtree / os.remove (irreversible)
+      permanent=false -- AppleScript Finder trash (recoverable)
+    Critical system paths are blocked with a 403 response.
 """
 
 import os

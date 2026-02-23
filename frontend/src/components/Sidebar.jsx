@@ -1,3 +1,37 @@
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// Sidebar.jsx -- Right-Side Information and Action Panel
+// ========================================================
+// Fixed-width panel rendered to the right of the sunburst chart. Composed of
+// four collapsible sections displayed in a scrollable column:
+//
+//   Quick Clean     -- Sizes and one-click cleanup for common junk targets
+//                      (Caches, Logs, Trash, Downloads). Powered by QuickClean.
+//   Selected Item   -- Shows name, path, size, type, and a Delete button for
+//                      whichever arc segment the user is hovering in the chart.
+//   Directory Contents -- Alphabetically sorted list of immediate children of
+//                      the currently hovered or last-clicked directory.
+//   Largest Items   -- Top-8 items by size within the current directory, each
+//                      rendered with a proportional background fill bar.
+//   File Types      -- Legend of extension -> colour -> total size for the
+//                      current directory tree (top 12 by size).
+//
+// Props:
+//   hoveredNode {D3HierarchyNode} -- Node under the mouse cursor in the chart.
+//   rootNode    {D3HierarchyNode} -- Root of the currently rendered chart.
+//   onDelete(path, size)          -- Trigger the delete confirmation modal.
+//   onNavigate(path)              -- Navigate to a directory path.
+// ----------------------------------------------------------------------------
 import React from 'react'
 import { formatSize, getPercentage } from '../utils/helpers'
 import { getColor, FILE_COLORS } from '../utils/colors'

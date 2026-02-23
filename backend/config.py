@@ -1,28 +1,49 @@
-# ╔══════════════════════════════════════════════════════════════════╗
-# ║              J M A C   V I S U A L I Z E R                      ║
-# ║         macOS Disk Usage Analyzer & Storage Manager             ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  Author      : Avdesh Jadon                                      ║
-# ║  GitHub      : https://github.com/avdeshjadon                   ║
-# ║  License     : MIT — Free to use, modify, and distribute        ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  If this project helped you:                                     ║
-# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
-# ╚══════════════════════════════════════════════════════════════════╝
+# ----------------------------------------------------------------------------
+# Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+# ----------------------------------------------------------------------------
+# Author   : Avdesh Jadon
+# GitHub   : https://github.com/avdeshjadon
+# License  : MIT License -- free to use, modify, and distribute.
+#            See LICENSE file in the project root for full license text.
+# ----------------------------------------------------------------------------
+# If this project helped you, consider starring the repository, opening a
+# pull request, or reporting issues on GitHub. Contributions are welcome.
+# ----------------------------------------------------------------------------
 """
-config.py — Application Configuration & Constants
-==================================================
-Central configuration file for Jmac Visualizer. All tuneable
-parameters, category mappings, and colour tokens live here so
-that the rest of the codebase stays free of magic values.
+config.py -- Application Configuration and Constants
+======================================================
+Single source of truth for all tuneable parameters, category definitions,
+colour tokens, and server settings used across the Jmac Visualizer backend.
+Keeping all magic values here makes them easy to find, change, and test
+without touching business logic in other modules.
 
-Constants defined:
-    SKIP_DIRS            — Virtual/system directories excluded from scanning
-    SKIP_NAMES           — File/folder names always ignored (e.g. .DS_Store)
-    CATEGORY_EXTENSIONS  — Maps file extensions to storage categories
-    CATEGORY_COLORS      — Hex colour codes for each storage category
-    HOST                 — Flask bind address (127.0.0.1)
-    PORT                 — Flask listen port  (5005)
+Constants
+---------
+SKIP_DIRS : set of str
+    Absolute paths and directory names that are always excluded from
+    filesystem scans. Includes virtual filesystems (/dev, /proc), macOS
+    Spotlight index directories, and version-control internals (.git).
+
+SKIP_NAMES : set of str
+    Individual file or folder names to silently skip regardless of their
+    location (e.g. .DS_Store, .localized). These contribute no meaningful
+    storage information but would otherwise clutter scan results.
+
+CATEGORY_EXTENSIONS : dict[str, set[str]]
+    Maps human-readable category labels to the set of file extensions that
+    belong to that category. Used by disk_info.py to produce the categorized
+    storage breakdown shown in the StorageOverview bar chart in the UI.
+
+CATEGORY_COLORS : dict[str, str]
+    Hex colour codes assigned to each storage category for consistent
+    rendering in the frontend StorageOverview and disk-info API response.
+
+HOST : str
+    The IP address Flask binds to. Fixed to 127.0.0.1 (loopback) so the
+    server is never accidentally accessible from the local network.
+
+PORT : int
+    The TCP port Flask listens on. Default is 5005.
 """
 
 # Directories to skip during scanning (virtual filesystems, caches, etc.)

@@ -1,12 +1,30 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// api.js -- Backend API Client
+// ==============================
+// Provides async helper functions for every REST endpoint exposed by the
+// Flask backend (http://127.0.0.1:5005). All functions return the parsed
+// JSON response and throw a descriptive Error on non-2xx HTTP status codes.
+//
+// Exported functions:
+//   fetchScan(path, depth)      -- GET /api/scan
+//   fetchRoots()                -- GET /api/roots
+//   fetchDiskInfo()             -- GET /api/disk-info
+//   fetchCleanTargets()         -- GET /api/clean-targets
+//   deleteItem(path, permanent) -- POST /api/delete
+//   checkPermissions()          -- GET /api/check-permissions
+//   requestPermissions()        -- POST /api/request-permissions
+// ----------------------------------------------------------------------------
 
 const API_BASE = "http://127.0.0.1:5005";
 

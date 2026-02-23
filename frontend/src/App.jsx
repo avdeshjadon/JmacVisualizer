@@ -1,12 +1,32 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// App.jsx -- Root Application Component
+// ========================================
+// Top-level React component that owns all application state and orchestrates
+// the major UI regions: Header, StorageOverview, ChartContainer, Sidebar,
+// Footer, DeleteModal, Tooltip, ToastContainer, and PermissionsOverlay.
+//
+// Responsibilities:
+//   - Permission check on mount; shows PermissionsOverlay if denied.
+//   - Fetches the list of filesystem roots for the root-selector dropdown.
+//   - Drives all scan requests via loadAndRender(), which also manages a
+//     frontend scan cache (keyed by "path_depth") with a background
+//     pre-fetcher that warms subdirectory caches after each top-level scan.
+//   - Propagates hover and click events from the SunburstChart up to
+//     Sidebar (hovered node details) and the Breadcrumb (path display).
+//   - Hosts the delete flow: promptDelete -> DeleteModal -> confirmDelete,
+//     which calls the /api/delete endpoint and refreshes affected caches.
+// ----------------------------------------------------------------------------
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import LoadingOverlay from './components/LoadingOverlay'
 import Header from './components/Header'

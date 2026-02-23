@@ -1,12 +1,29 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// colors.js -- Color Mapping and Node Coloring Utilities
+// ========================================================
+// Defines the color palettes used throughout the SunburstChart and Sidebar
+// to represent different file types and directories. Also exports utility
+// functions used by the D3 chart to assign colors to individual data nodes.
+//
+// Exports:
+//   FILE_COLORS  -- Map of file extension -> hex color (e.g. ".py": "#3498db")
+//   DIR_COLORS   -- Ordered array of hex colors cycled for directory segments.
+//   hashString() -- djb2-style hash used to deterministically assign colors
+//                   from DIR_COLORS based on a directory or extension name.
+//   getColor(d)  -- Returns the appropriate color for a given D3 hierarchy
+//                   node, handling directory, file, and unknown types.
+// ----------------------------------------------------------------------------
 
 export const FILE_COLORS = {
   // Media

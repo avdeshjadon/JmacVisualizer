@@ -1,36 +1,62 @@
-# ╔══════════════════════════════════════════════════════════════════╗
-# ║              J M A C   V I S U A L I Z E R                      ║
-# ║         macOS Disk Usage Analyzer & Storage Manager             ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  Author      : Avdesh Jadon                                      ║
-# ║  GitHub      : https://github.com/avdeshjadon                   ║
-# ║  License     : MIT — Free to use, modify, and distribute        ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  If this project helped you:                                     ║
-# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
-# ╚══════════════════════════════════════════════════════════════════╝
+# ----------------------------------------------------------------------------
+# Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+# ----------------------------------------------------------------------------
+# Author   : Avdesh Jadon
+# GitHub   : https://github.com/avdeshjadon
+# License  : MIT License -- free to use, modify, and distribute.
+#            See LICENSE file in the project root for full license text.
+# ----------------------------------------------------------------------------
+# If this project helped you, consider starring the repository, opening a
+# pull request, or reporting issues on GitHub. Contributions are welcome.
+# ----------------------------------------------------------------------------
 """
-scanner.py — High-Performance Filesystem Scanner
-=================================================
-Provides fast, recursive directory scanning optimised for macOS.
-Uses physical block size (st_blocks × 512) to accurately match
-the "Size on Disk" reported by macOS Finder.
+scanner.py -- High-Performance Filesystem Scanner
+===================================================
+Provides fast, recursive directory scanning optimised for macOS. Sizes are
+computed using the physical block count (st_blocks * 512) rather than the
+logical file size, so reported values match what macOS Finder shows as
+"Size on Disk" rather than the raw byte count.
 
-Scanning Strategy (priority order):
-    1. Pure Python  os.scandir()  — fastest, zero subprocess overhead
-    2. Finder AppleScript fallback — for SIP-protected VIP folders
-       (Messages, Safari, Mail, Photos Library)
-    3. BSD  du -sk  fallback      — when PermissionError is raised
+Scanning strategy (evaluated in priority order)
+-----------------------------------------------
+1. Pure Python os.scandir()
+   The default path. No subprocess overhead; scans entirely in the Python
+   process. Works for all user-accessible directories.
 
-Caching:
-    Results are cached in-process with a 5-minute TTL to avoid
-    redundant disk I/O on repeated API calls for the same path.
+2. Finder AppleScript fallback (get_finder_size)
+   Used selectively for a set of known SIP-protected VIP folders such as
+   Messages, Safari, Mail, and Photos Library. When Python reports nearly
+   zero for these directories, the scanner falls back to asking Finder via
+   osascript for the authoritative size.
 
-Public API:
-    scan_directory(path, depth, max_children)  → dict tree
-    fast_dir_size(path)                         → int bytes
-    format_size(bytes)                          → str  (e.g. "1.23 GB")
-    log_scan(msg)                               → stderr pretty-print
+3. BSD du -sk fallback (du_size)
+   Last resort when a PermissionError or OSError is raised mid-scan.
+   Spawns a shell subprocess and parses the kilobyte output; slower but
+   reliable for system directories the Python process cannot read directly.
+
+Result caching
+--------------
+scan_directory() maintains an in-process dict cache keyed on
+"<path>_<depth>_<max_children>". Each entry stores a Unix timestamp so
+entries expire after CACHE_TTL seconds (default: 300 s / 5 minutes).
+The cache is process-local and does not survive server restarts.
+
+Public API
+----------
+scan_directory(path, depth=3, max_children=500)
+    Entry point for the /api/scan route. Returns a JSON-serialisable dict
+    tree: {name, path, size, type, children, has_children}.
+
+fast_dir_size(path)
+    Recursively compute the physical byte count for a directory using the
+    three-tier fallback strategy above. Returns an integer (bytes).
+
+format_size(b)
+    Convert a raw byte count to a human-readable string using SI units
+    (1000-based, matching macOS Finder display). E.g. 1234567 -> "1.2 MB".
+
+log_scan(msg)
+    Write a formatted status line to stderr for terminal monitoring.
 """
 
 import os

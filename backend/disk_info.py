@@ -1,32 +1,50 @@
-# ╔══════════════════════════════════════════════════════════════════╗
-# ║              J M A C   V I S U A L I Z E R                      ║
-# ║         macOS Disk Usage Analyzer & Storage Manager             ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  Author      : Avdesh Jadon                                      ║
-# ║  GitHub      : https://github.com/avdeshjadon                   ║
-# ║  License     : MIT — Free to use, modify, and distribute        ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  If this project helped you:                                     ║
-# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
-# ╚══════════════════════════════════════════════════════════════════╝
+# ----------------------------------------------------------------------------
+# Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+# ----------------------------------------------------------------------------
+# Author   : Avdesh Jadon
+# GitHub   : https://github.com/avdeshjadon
+# License  : MIT License -- free to use, modify, and distribute.
+#            See LICENSE file in the project root for full license text.
+# ----------------------------------------------------------------------------
+# If this project helped you, consider starring the repository, opening a
+# pull request, or reporting issues on GitHub. Contributions are welcome.
+# ----------------------------------------------------------------------------
 """
-disk_info.py — Disk Usage & Storage Categorization
-====================================================
-Provides high-level disk information functions used by the /api/disk-info
-endpoint. Combines shutil-based total/used/free reporting with a
-parallel-threaded, extension-aware categorization scan of the user's
-home directory and common system locations.
+disk_info.py -- Disk Usage and Storage Categorization
+=======================================================
+Provides high-level disk information consumed by the /api/disk-info endpoint.
+Combines the standard library shutil.disk_usage() for raw total/used/free
+numbers with a parallel, extension-aware directory scan to produce a
+categorized storage breakdown matching the style of macOS Storage Management.
 
-Categorization approach:
-    • Apps        — /Applications + ~/Applications  (parallel scan)
-    • Documents   — ~/Documents + ~/Desktop         (parallel scan)
-    • System Data — ~/Library                        (parallel scan)
-    • Other       — ~/Downloads, ~/Movies, ~/Music … (parallel scan)
-    • macOS       — Estimated from remaining used space (capped 20 GB)
+Categorization approach
+-----------------------
+All directory scans are dispatched concurrently using a ThreadPoolExecutor
+with up to 8 workers. Each worker calls scanner.fast_dir_size() and returns
+a (category, bytes) tuple which is accumulated into category_sizes.
 
-Public API:
-    get_disk_usage()     → {total, used, free}
-    get_full_disk_info() → {total, used, free, categories: [...]}
+Category assignments:
+    Apps        -- /Applications and ~/Applications (.app, .dmg, .pkg, .ipa)
+    Documents   -- ~/Documents and ~/Desktop (PDFs, Office docs, text files)
+    System Data -- ~/Library (application support, caches, preferences, etc.)
+    Other       -- ~/Downloads, ~/Pictures, ~/Music, ~/Movies, ~/Public, etc.
+    macOS       -- Estimated from remaining used space after all scans,
+                   capped at 20 GB (approximate OS footprint).
+
+Any gap between the sum of categorized bytes and the total used space
+reported by the filesystem is attributed proportionally between macOS and
+System Data to avoid displaying a misleadingly small macOS slice.
+
+Public API
+----------
+get_disk_usage()
+    Returns a dict with keys 'total', 'used', 'free' (all in bytes) for
+    the root volume '/'. Thin wrapper around shutil.disk_usage('/').
+
+get_full_disk_info()
+    Returns a dict: {total, used, free, categories}. 'categories' is a list
+    of dicts sorted by size descending: [{name, size, color}, ...].
+    This is the primary function called by the /api/disk-info route handler.
 """
 
 import os

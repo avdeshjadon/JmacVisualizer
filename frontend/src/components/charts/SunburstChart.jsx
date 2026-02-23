@@ -1,12 +1,33 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// SunburstChart.jsx -- Interactive D3 Sunburst Disk Visualization
+// =================================================================
+// Core visualization component. Renders a multi-ring sunburst chart using
+// D3.js, where each arc segment represents a file or directory. Arc size is
+// proportional to the item's physical size on disk.
+//
+// Chart lifecycle:
+//   1. On mount, an SVG is created and a D3 partition layout is applied to
+//      the data hierarchy.
+//   2. On data change, arcs, labels, and center text are updated with smooth
+//      tween animations interpolating arc path geometry.
+//   3. Mouse events on arcs fire onHoverNode callbacks (propagated to Sidebar)
+//      and imperatively update the Tooltip ref for low-latency display.
+//   4. Clicking a directory arc drills into that directory by calling
+//      onClickDirectory; clicking the center navigates up via onGoBack.
+//
+// Major dependencies: d3-hierarchy, d3-shape (arc, partition), d3-interpolate.
+// ----------------------------------------------------------------------------
 import React, { useEffect, useRef } from 'react'
 import { getColor } from '../../utils/colors'
 import { formatSize } from '../../utils/helpers'

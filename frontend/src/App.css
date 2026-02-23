@@ -1,15 +1,45 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
-/* ═══════════════════════════════════════════════════════════════
-   Disk Visualizer — Premium Dark Mode Glassmorphism Theme
-   ═══════════════════════════════════════════════════════════════ */
+/* --------------------------------------------------------------------------
+   Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+   --------------------------------------------------------------------------
+   Author   : Avdesh Jadon
+   GitHub   : https://github.com/avdeshjadon
+   License  : MIT License -- free to use, modify, and distribute.
+              See LICENSE file in the project root for full license text.
+   --------------------------------------------------------------------------
+   If this project helped you, consider starring the repository, opening a
+   pull request, or reporting issues on GitHub. Contributions are welcome.
+   --------------------------------------------------------------------------
+
+   App.css -- Global Stylesheet and Design System
+   ================================================
+   Single stylesheet for the entire Jmac Visualizer frontend. Follows a
+   CSS custom property (variable) design system defined in :root so that
+   the colour palette, typography, spacing, and animation timings can be
+   changed from one place without touching component-level styles.
+
+   Structure (in order of appearance):
+     :root variables      -- Colour palette, spacing, radius, font stack.
+     PermissionsOverlay   -- Full-screen FD-Access required modal.
+     Reset & Base         -- Box model reset, html/body, #root layout.
+     Background Orbs      -- Animated blurred gradient orbs (body::before/after).
+     Glass Panel          -- Shared glassmorphism card style (.glass-panel).
+     Loading Overlay      -- Full-screen scan-in-progress animation.
+     PC Scanner           -- CSS-only monitor + scanning line animation.
+     Header               -- Top navigation bar, logo, breadcrumb, root selector.
+     Buttons              -- .btn variants (ghost, primary, danger, delete-sm).
+     Storage Overview     -- Horizontal category bar + segment tooltips.
+     Main Layout          -- .main-content flex, chart area, sidebar.
+     Sidebar              -- Panel sections, row items, file detail card.
+     SunburstChart        -- SVG container, centre text, arc transitions.
+     Delete Modal         -- Confirmation overlay and card.
+     Toast Notifications  -- Stacking toast container and variants.
+     Tooltip              -- Floating D3-driven tooltip.
+     Custom Scrollbar     -- Webkit scrollbar styling.
+     Responsive           -- Media queries for narrower viewports.
+   -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   Disk Visualizer -- Premium Dark Mode Glassmorphism Theme
+   -------------------------------------------------------------------------- */
 
 /* ─── CSS Variables ─────────────────────────────────────────── */
 :root {

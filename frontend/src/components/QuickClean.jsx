@@ -1,3 +1,31 @@
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// QuickClean.jsx -- One-Click Cleanup Targets Panel
+// ===================================================
+// Fetches and displays the sizes of four common macOS junk locations:
+// User Caches, User Logs, Trash, and Downloads. Each entry shows its
+// current size and a "Clean" button that triggers the parent's delete
+// confirmation flow.
+//
+// Data is loaded from GET /api/clean-targets on mount. The component
+// does not manage the actual deletion -- it delegates to the onDelete
+// prop so that the DeleteModal confirmation flow in App.jsx can run.
+//
+// Props:
+//   onDelete(path, size) -- Passed up to App.jsx to open the DeleteModal.
+//   onRefresh()          -- Called after a successful deletion to refresh
+//                          the parent view (currently triggers a page reload).
+// ----------------------------------------------------------------------------
 import React, { useState, useEffect } from 'react';
 import { formatSize } from '../utils/helpers';
 import { fetchCleanTargets } from '../utils/api';

@@ -1,12 +1,30 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// LoadingOverlay.jsx -- Full-Screen Loading Indicator
+// =====================================================
+// Renders an animated full-viewport overlay with a PC/monitor scanning
+// animation and a status text line. Displayed during filesystem scans to
+// give the user visual feedback that work is in progress.
+//
+// The overlay uses CSS opacity + visibility transitions to fade in/out
+// smoothly rather than mounting/unmounting from the DOM, which prevents
+// layout shift when the scan completes.
+//
+// Props:
+//   visible    {boolean} -- Controls overlay display (true = scanning).
+//   statusText {string}  -- Dynamic message shown below the animation
+//                           (e.g. "Scanning /Users/...", "Initializing...").
+// ----------------------------------------------------------------------------
 import React, { useEffect, useState } from 'react'
 
 export default function LoadingOverlay({ visible }) {

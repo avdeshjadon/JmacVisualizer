@@ -1,12 +1,31 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// ToastContainer.jsx -- Notification Toast System
+// ==================================================
+// Provides a lightweight, self-managing toast notification system. Renders an
+// absolutely-positioned container in the bottom-right corner of the screen
+// that stacks transient notification messages with type-based styling.
+//
+// Usage (imperative API via module-level singleton):
+//   import ToastContainer, { showToast } from './ToastContainer'
+//   showToast('File deleted', 'success', 3000)
+//   showToast('Permission denied', 'error')
+//   showToast('Scanning...', 'info', 2000)
+//
+// Each toast auto-dismisses after the specified duration (default 4000 ms).
+// <ToastContainer /> must be rendered exactly once in the component tree
+// (typically at the App root level) to receive and display toasts.
+// ----------------------------------------------------------------------------
 import React, { useRef, useCallback } from 'react'
 
 export default function ToastContainer() {

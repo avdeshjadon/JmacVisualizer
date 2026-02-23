@@ -1,3 +1,40 @@
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// ChartContainer.jsx -- Sunburst Chart Wrapper and Controls
+// ===========================================================
+// Wrapper component that hosts the SunburstChart and the toolbar controls
+// positioned above it (back button, path label, delete-root button).
+// Mediates between the pure D3 SunburstChart component and the higher-level
+// App state by forwarding callback props and managing the chart's title bar.
+//
+// Rendering flow:
+//   - Displays a placeholder message when no scan data has loaded yet.
+//   - Once data is available, renders <SunburstChart> with the hierarchy data
+//     and wires up hover, click, and delete callbacks.
+//   - The "Go Back" button calls onGoBack() to navigate to the parent path.
+//   - The delete-root button calls onRootDelete() on the current root path.
+//
+// Props:
+//   data            {object}       -- JSON tree from /api/scan.
+//   centerName      {string}       -- Label shown in the donut center.
+//   centerSize      {string}       -- Size string shown in the donut center.
+//   centerItems     {string}       -- Item count shown in the donut center.
+//   tooltipRef      {React.Ref}    -- Forwarded to SunburstChart.
+//   onHoverNode(d, root, reset)    -- Propagated hover event.
+//   onRootDelete(path, size)       -- Called to delete the root directory.
+//   onClickDirectory(path)         -- Called to drill into a directory.
+//   onGoBack()                     -- Called to navigate to parent directory.
+// ----------------------------------------------------------------------------
 import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { formatSize, getPercentage } from '../utils/helpers'
 import SunburstChart from './charts/SunburstChart'

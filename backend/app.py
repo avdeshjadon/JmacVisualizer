@@ -1,29 +1,37 @@
 #!/usr/bin/env python3
-# ╔══════════════════════════════════════════════════════════════════╗
-# ║              J M A C   V I S U A L I Z E R                      ║
-# ║         macOS Disk Usage Analyzer & Storage Manager             ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  Author      : Avdesh Jadon                                      ║
-# ║  GitHub      : https://github.com/avdeshjadon                   ║
-# ║  License     : MIT — Free to use, modify, and distribute        ║
-# ╠══════════════════════════════════════════════════════════════════╣
-# ║  If this project helped you:                                     ║
-# ║  ⭐ Star the repo  🍴 Fork it  🐛 Report bugs  🤝 Contribute   ║
-# ╚══════════════════════════════════════════════════════════════════╝
+# ----------------------------------------------------------------------------
+# Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+# ----------------------------------------------------------------------------
+# Author   : Avdesh Jadon
+# GitHub   : https://github.com/avdeshjadon
+# License  : MIT License -- free to use, modify, and distribute.
+#            See LICENSE file in the project root for full license text.
+# ----------------------------------------------------------------------------
+# If this project helped you, consider starring the repository, opening a
+# pull request, or reporting issues on GitHub. Contributions are welcome.
+# ----------------------------------------------------------------------------
 """
-app.py — Application Entry Point
-=================================
-Bootstraps the Jmac Visualizer Flask server. Resolves the frontend
-dist path for both source and PyInstaller-frozen (compiled) builds,
-registers all API routes, and starts the HTTP server.
+app.py -- Application Entry Point
+==================================
+Bootstraps the Jmac Visualizer Flask HTTP server. This module is
+responsible for two things:
+
+  1. Resolving the frontend 'dist/' directory at runtime. The path differs
+     between running from source (development) and running as a compiled
+     PyInstaller executable (production bundle built via makeapp.sh).
+
+  2. Creating the Flask application instance, registering all REST API
+     routes via routes.register_routes(), and starting the development
+     server on localhost.
 
 Usage:
-    python app.py                 # Development mode
-    ./JmacVisualizer              # Compiled executable (via makeapp.sh)
+    python app.py            -- Start in development mode (hot-reloadable)
+    ./JmacVisualizer         -- Run the compiled standalone executable
 
-Server:
-    Host : 127.0.0.1  (localhost only — never exposed externally)
-    Port : 5005       (configurable via config.py)
+Server configuration:
+    Host : 127.0.0.1         -- Bound to loopback only; never exposed to LAN
+    Port : 5005              -- Configurable via HOST / PORT in config.py
+    Mode : Production        -- Debug mode is always disabled (debug=False)
 """
 
 import os

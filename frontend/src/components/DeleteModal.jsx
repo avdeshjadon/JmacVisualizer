@@ -1,12 +1,34 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// DeleteModal.jsx -- Deletion Confirmation Dialog
+// =================================================
+// Modal overlay that asks the user to confirm before deleting a file or
+// directory. Presents two action choices to avoid accidental data loss:
+//
+//   Move to Trash   -- Safer default; item is recoverable from macOS Trash.
+//   Delete Forever  -- Immediately calls shutil.rmtree / os.remove on the
+//                      backend; cannot be undone.
+//
+// The modal is hidden via CSS (not unmounted) to preserve transition
+// animations. The Escape key and clicking outside the card both dismiss it.
+//
+// Props:
+//   visible   {boolean}  -- Whether the modal is shown.
+//   path      {string}   -- Filesystem path of the item to be deleted.
+//   size      {string}   -- Human-readable size string (e.g. "1.2 GB").
+//   onConfirm(permanent) -- Called with true (permanent) or false (trash).
+//   onCancel()           -- Called when the user dismisses without action.
+// ----------------------------------------------------------------------------
 import React, { useState, useEffect } from 'react'
 
 export default function DeleteModal({ visible, path, size, onConfirm, onCancel }) {

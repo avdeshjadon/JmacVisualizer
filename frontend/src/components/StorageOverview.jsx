@@ -1,12 +1,33 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// StorageOverview.jsx -- Disk Usage Summary Bar
+// ===============================================
+// Fetches disk info from GET /api/disk-info and renders a horizontally
+// segmented bar that visually represents storage consumption by category,
+// mirroring the style of the macOS System Settings Storage pane.
+//
+// Each colored segment corresponds to a category (Apps, Documents, System
+// Data, macOS, Other). Hovering over a segment shows a tooltip with the
+// category name and its size. Clicking a segment navigates into the
+// relevant directory when a path is associated with it.
+//
+// Data is refreshed automatically when the "refresh-disk" CustomEvent is
+// dispatched on window (emitted by App.jsx after a deletion completes).
+//
+// Props:
+//   onNavigate(path) -- Called when the user clicks a clickable segment
+//                       to drill into a specific storage category path.
+// ----------------------------------------------------------------------------
 import React, { useState, useEffect } from 'react'
 import { fetchDiskInfo } from '../utils/api'
 import { formatSize, formatSizeGB } from '../utils/helpers'

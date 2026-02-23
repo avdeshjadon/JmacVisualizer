@@ -1,12 +1,31 @@
-/**
- * ═══════════════════════════════════════════════════════════
- *  Built with ♥ by Avdesh Jadon
- *  GitHub: https://github.com/avdeshjadon
- *
- *  This software is free to use. If you find it helpful:
- *  ⭐ Star the repository | 🍴 Fork the project | 🤝 Contribute
- * ═══════════════════════════════════════════════════════════
- */
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// helpers.js -- General-Purpose Utility Functions
+// =================================================
+// Pure utility functions shared across multiple components and modules.
+// Contains no React-specific code, no side effects, and no imports; safe
+// to use in any context including tests and server-side rendering.
+//
+// Exports:
+//   formatSize(bytes)        -- Convert raw bytes to a human-readable string
+//                               using SI (1000-based) units matching macOS
+//                               Finder display (e.g. 1500000 -> "1.5 MB").
+//   formatSizeGB(bytes)      -- Convenience wrapper that always formats into
+//                               gigabytes (e.g. for total disk size labels).
+//   getPercentage(d, root)   -- Compute what percentage of the root node's
+//                               total size a given D3 hierarchy node occupies.
+//                               Returns a float in the range [0, 100].
+// ----------------------------------------------------------------------------
 
 export function formatSize(bytes) {
   if (bytes === 0) return "0 B";

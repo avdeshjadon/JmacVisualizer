@@ -1,3 +1,36 @@
+// ----------------------------------------------------------------------------
+// Jmac Visualizer -- macOS Disk Usage Analyzer and Storage Manager
+// ----------------------------------------------------------------------------
+// Author   : Avdesh Jadon
+// GitHub   : https://github.com/avdeshjadon
+// License  : MIT License -- free to use, modify, and distribute.
+//            See LICENSE file in the project root for full license text.
+// ----------------------------------------------------------------------------
+// If this project helped you, consider starring the repository, opening a
+// pull request, or reporting issues on GitHub. Contributions are welcome.
+// ----------------------------------------------------------------------------
+//
+// PermissionsOverlay.jsx -- Full Disk Access Required Screen
+// ============================================================
+// Shown instead of the main application when the backend reports that the
+// process does not have Full Disk Access (fullDiskAccess: false from
+// GET /api/check-permissions). Provides user-facing instructions and two
+// action buttons:
+//
+//   Open System Settings -- Calls POST /api/request-permissions, which uses
+//                           'open x-apple.systempreferences:...' to navigate
+//                           the user to Privacy -> Full Disk Access.
+//   I Have Granted Access -- Re-runs the permission check (onCheck), which
+//                            transitions to the main app if access was granted.
+//
+// This component is displayed before any scan is performed, so it has no
+// dependency on scan state and can render independently as the first thing
+// the user sees on restricted systems.
+//
+// Props:
+//   onCheck()   -- Re-check permissions and proceed if now granted.
+//   onRequest() -- Open macOS System Settings to the FDA privacy pane.
+// ----------------------------------------------------------------------------
 import React from 'react';
 
 export default function PermissionsOverlay({ onCheck, onRequest }) {
