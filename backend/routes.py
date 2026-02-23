@@ -230,11 +230,30 @@ def register_routes(app):
         try:
             abs_target = os.path.abspath(target)
             if permanent:
-                # Permanent deletion
+                # Permanent deletion with graceful skip of SIP-protected entries.
+                # shutil.rmtree(onerror=...) is called for each entry that raises
+                # an OSError so that one blocked subdirectory does not abort the
+                # entire operation.
+                skipped = []
+
+                def _onerror(func, path, exc_info):
+                    """Log and skip any file/dir that cannot be removed."""
+                    skipped.append(path)
+
                 if os.path.isdir(abs_target):
-                    shutil.rmtree(abs_target)
+                    shutil.rmtree(abs_target, onerror=_onerror)
                 else:
-                    os.remove(abs_target)
+                    try:
+                        os.remove(abs_target)
+                    except OSError as e:
+                        log_api("  ✖", "/api/delete", f"{RED}Cannot remove file: {e}{NC}")
+                        return jsonify({"error": str(e)}), 500
+
+                if skipped:
+                    msg = f"Partially deleted (skipped {len(skipped)} protected item(s))"
+                    log_api("  ✔", "/api/delete", f"{GREEN}{msg}: {os.path.basename(target)}{NC}")
+                    return jsonify({"success": True, "message": msg, "skipped": skipped})
+
                 log_api("  ✔", "/api/delete", f"{GREEN}Permanently Deleted: {os.path.basename(target)}{NC}")
                 return jsonify({"success": True, "message": f"Permanently Deleted: {os.path.basename(target)}"})
             else:
