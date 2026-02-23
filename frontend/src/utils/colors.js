@@ -16,109 +16,100 @@
 // to represent different file types and directories. Also exports utility
 // functions used by the D3 chart to assign colors to individual data nodes.
 //
-// Palette design: midnight-aurora jewel tones.
-// All colors tested against the deep-navy background (#0c0c1e).
-// Lime, neon-yellow, and violent clashing hue combos are excluded.
-//
 // Exports:
-//   FILE_COLORS  -- Map of file extension -> hex color
-//   DIR_COLORS   -- Premium jewel-tone palette cycled for directory segments.
-//   hashString() -- djb2-style hash used to deterministically pick colors.
-//   getColor(d)  -- Returns the appropriate color for a given D3 node.
+//   FILE_COLORS  -- Map of file extension -> hex color (e.g. ".py": "#3498db")
+//   DIR_COLORS   -- Ordered array of hex colors cycled for directory segments.
+//   hashString() -- djb2-style hash used to deterministically assign colors
+//                   from DIR_COLORS based on a directory or extension name.
+//   getColor(d)  -- Returns the appropriate color for a given D3 hierarchy
+//                   node, handling directory, file, and unknown types.
 // ----------------------------------------------------------------------------
 
 export const FILE_COLORS = {
-  // Media -- warm rose/coral family
-  ".jpg": "#f06292",
-  ".jpeg": "#f06292",
-  ".png": "#ec407a",
-  ".gif": "#f48fb1",
-  ".svg": "#ff8a65",
-  ".webp": "#ef5350",
-  ".mp4": "#e53935",
-  ".mov": "#f44336",
-  ".avi": "#ef9a9a",
-  ".mp3": "#e91e63",
-  ".wav": "#f48fb1",
-  ".flac": "#ad1457",
-  ".aac": "#f8bbd0",
-  ".heic": "#f06292",
-  // Documents -- violet / indigo family
-  ".pdf": "#ba68c8",
-  ".doc": "#7e57c2",
-  ".docx": "#7e57c2",
-  ".xls": "#26a69a",
-  ".xlsx": "#26a69a",
-  ".ppt": "#ff7043",
-  ".pptx": "#ff7043",
-  ".txt": "#78909c",
-  ".md": "#90a4ae",
-  ".csv": "#4fc3f7",
-  // Code -- blue / cyan family
-  ".py": "#42a5f5",
-  ".js": "#ffca28",
-  ".ts": "#29b6f6",
-  ".jsx": "#ffa726",
-  ".tsx": "#26c6da",
-  ".html": "#ef6c00",
-  ".css": "#ab47bc",
-  ".scss": "#9c27b0",
-  ".json": "#4dd0e1",
-  ".xml": "#ff7043",
-  ".yaml": "#ff8f00",
-  ".yml": "#ff8f00",
-  ".sh": "#66bb6a",
-  ".swift": "#ef5350",
-  ".java": "#ff7043",
-  ".c": "#42a5f5",
-  ".cpp": "#1e88e5",
-  ".h": "#4dd0e1",
-  ".rb": "#e53935",
-  ".go": "#26c6da",
+  // Media
+  ".jpg": "#e74c8c",
+  ".jpeg": "#e74c8c",
+  ".png": "#e84393",
+  ".gif": "#fd79a8",
+  ".svg": "#fab1a0",
+  ".webp": "#e17055",
+  ".mp4": "#d63031",
+  ".mov": "#e17055",
+  ".avi": "#ff7675",
+  ".mp3": "#e84393",
+  ".wav": "#fd79a8",
+  ".flac": "#e74c8c",
+  ".aac": "#fab1a0",
+  ".heic": "#e84393",
+  // Documents
+  ".pdf": "#ff6b6b",
+  ".doc": "#5f27cd",
+  ".docx": "#5f27cd",
+  ".xls": "#10ac84",
+  ".xlsx": "#10ac84",
+  ".ppt": "#ff9f43",
+  ".pptx": "#ff9f43",
+  ".txt": "#576574",
+  ".md": "#576574",
+  ".csv": "#10ac84",
+  // Code
+  ".py": "#3498db",
+  ".js": "#f1c40f",
+  ".ts": "#2980b9",
+  ".jsx": "#f39c12",
+  ".tsx": "#2980b9",
+  ".html": "#e67e22",
+  ".css": "#9b59b6",
+  ".scss": "#8e44ad",
+  ".json": "#1abc9c",
+  ".xml": "#e67e22",
+  ".yaml": "#d35400",
+  ".yml": "#d35400",
+  ".sh": "#2ecc71",
+  ".swift": "#e74c3c",
+  ".java": "#e74c3c",
+  ".c": "#3498db",
+  ".cpp": "#2980b9",
+  ".h": "#1abc9c",
+  ".rb": "#e74c3c",
+  ".go": "#00bcd4",
   ".rs": "#ff7043",
   ".php": "#7c4dff",
-  // Archives -- deep purple family
-  ".zip": "#7e57c2",
-  ".tar": "#673ab7",
-  ".gz": "#9575cd",
-  ".rar": "#7b1fa2",
-  ".7z": "#8e24aa",
-  ".dmg": "#5c6bc0",
-  ".pkg": "#7986cb",
-  // System -- slate / teal
-  ".app": "#26c6da",
-  ".dylib": "#546e7a",
-  ".so": "#546e7a",
-  ".framework": "#00acc1",
-  ".plist": "#ffd54f",
-  ".log": "#b0bec5",
-  ".db": "#ff8a65",
-  ".sqlite": "#ff7043",
+  // Archives
+  ".zip": "#9b59b6",
+  ".tar": "#8e44ad",
+  ".gz": "#9b59b6",
+  ".rar": "#8e44ad",
+  ".7z": "#9b59b6",
+  ".dmg": "#6c5ce7",
+  ".pkg": "#a29bfe",
+  // System
+  ".app": "#00cec9",
+  ".dylib": "#636e72",
+  ".so": "#636e72",
+  ".framework": "#00cec9",
+  ".plist": "#fdcb6e",
+  ".log": "#b2bec3",
+  ".db": "#e17055",
+  ".sqlite": "#e17055",
   // Default
-  ".none": "#455a64",
-  directory: "#7c6df5",
+  ".none": "#555577",
+  directory: "#7c5cfc",
 };
 
-// DIR_COLORS -- curated jewel-tone palette for directory ring segments.
-// 16 hues at similar perceived brightness and chroma so adjacent segments
-// complement rather than clash. No lime, neon yellow, or near-white included.
 export const DIR_COLORS = [
-  "#7c6df5", // electric violet
-  "#5b9cf6", // cobalt blue
-  "#f472b6", // rose pink
-  "#34d399", // emerald
-  "#f97316", // rich amber
-  "#a78bfa", // soft lavender
-  "#22d3ee", // sky cyan
-  "#fb923c", // coral
-  "#60a5fa", // periwinkle
-  "#e879f9", // fuchsia
-  "#2dd4bf", // teal
-  "#c084fc", // lilac purple
-  "#38bdf8", // light sky blue
-  "#f43f5e", // crimson rose
-  "#818cf8", // indigo
-  "#fb7185", // salmon pink
+  "#7c5cfc",
+  "#5c8cfc",
+  "#00cec9",
+  "#00b894",
+  "#6c5ce7",
+  "#a29bfe",
+  "#74b9ff",
+  "#55efc4",
+  "#fd79a8",
+  "#e17055",
+  "#ffeaa7",
+  "#dfe6e9",
 ];
 
 export function hashString(str) {
@@ -131,14 +122,12 @@ export function hashString(str) {
 }
 
 export function getColor(d) {
-  if (!d.data) return "#1e1e3f";
+  if (!d.data) return "#333";
   if (d.data.type === "directory") {
     return DIR_COLORS[Math.abs(hashString(d.data.name)) % DIR_COLORS.length];
   }
   const ext = d.data.extension || ".none";
-  // For unknown extensions use a harmonious mid-blue/purple hue range (180-300)
   return (
-    FILE_COLORS[ext] ||
-    `hsl(${(Math.abs(hashString(ext)) % 120) + 200}, 60%, 60%)`
+    FILE_COLORS[ext] || `hsl(${Math.abs(hashString(ext)) % 360}, 50%, 55%)`
   );
 }
