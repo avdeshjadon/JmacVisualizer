@@ -102,15 +102,26 @@ export default function App() {
   async function init() {
     setLoading(true)
     setLoadingText('Checking permissions…')
+
+    // Detect whether we are running inside an Electron shell.
+    // In a plain browser window there is no window.process, so we skip
+    // the Full Disk Access check and proceed directly.
+    const inElectron =
+      typeof window !== 'undefined' &&
+      window.process &&
+      window.process.type === 'renderer'
+
     try {
-      const permRes = await checkPermissions()
-      if (!permRes.fullDiskAccess) {
-        setHasPermission(false)
-        setLoading(false)
-        return
+      if (inElectron) {
+        const permRes = await checkPermissions()
+        if (!permRes.fullDiskAccess) {
+          setHasPermission(false)
+          setLoading(false)
+          return
+        }
       }
       setHasPermission(true)
-      
+
       setLoadingText('Initializing…')
       const rootsList = await fetchRoots()
       setRoots(rootsList)
