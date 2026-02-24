@@ -38,7 +38,7 @@ import DeleteModal from './components/DeleteModal'
 import ToastContainer, { showToast } from './components/ToastContainer'
 import Footer from './components/Footer'
 import PermissionsOverlay from './components/PermissionsOverlay'
-import { fetchScan, fetchRoots, deleteItem, checkPermissions, requestPermissions } from './utils/api'
+import { fetchScan, fetchRoots, deleteItem, checkPermissions, requestPermissions, subscribeToEvents } from './utils/api'
 import { formatSize } from './utils/helpers'
 
 export default function App() {

@@ -54,7 +54,7 @@ export default function Sidebar({ hoveredNode, rootNode, onDelete, onNavigate })
             Quick Clean
           </h3>
           <div className="sidebar-section-content">
-            <QuickClean onDelete={onDelete} onRefresh={() => window.location.reload()} />
+            <QuickClean onCleanDone={() => window.dispatchEvent(new CustomEvent('refresh-disk'))} />
           </div>
         </section>
 

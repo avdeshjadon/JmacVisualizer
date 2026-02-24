@@ -1181,6 +1181,45 @@ body::after {
   border-color: transparent;
 }
 
+/* Cleaning state — button shows spinner, card dims slightly */
+.qc-btn--cleaning {
+  background: rgba(124, 109, 245, 0.15);
+  border-color: rgba(124, 109, 245, 0.3);
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tiny inline spinner inside the Clean button */
+.qc-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--accent-1);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Inline status message under the card (success / error) */
+.qc-status-msg {
+  grid-column: 1 / -1;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 0 0 2px;
+  line-height: 1.3;
+  word-break: break-word;
+  opacity: 0.9;
+}
+
+/* Make the quick-clean-card a grid so the status msg can span below */
+.quick-clean-card {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .quick-clean-loading {
   display: flex;
   align-items: center;

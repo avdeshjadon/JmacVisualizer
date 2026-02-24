@@ -444,8 +444,11 @@ def register_routes(app):
 
                 if deleted_count == 0 and skipped_paths:
                     msg = "Operation not permitted — all items are SIP-protected"
-                    log_api("  ✖", "/api/delete", f"{RED}{msg}{NC}")
-                    return jsonify({"error": msg}), 403
+                    log_api("  ✔", "/api/delete", f"{YELLOW}{msg}{NC}")
+                    invalidate_cache(abs_target)
+                    invalidate_cache(os.path.dirname(abs_target))
+                    _push_sse_deleted(abs_target)
+                    return jsonify({"success": True, "message": msg, "skipped": [str(p) for p in skipped_paths]})
 
                 if skipped_paths:
                     msg = f"Partially deleted ({len(skipped_paths)} protected item(s) skipped)"
@@ -467,10 +470,12 @@ def register_routes(app):
 
                 if deleted_count == 0 and skipped_paths:
                     msg = "Operation not permitted — all items are SIP-protected"
-                    log_api("  ✖", "/api/delete", f"{RED}{msg}{NC}")
-                    # Log precisely what failed for debugging
+                    log_api("  ✔", "/api/delete", f"{YELLOW}{msg}{NC}")
                     sys.stderr.write(f"  {DIM}└─ {skipped_paths[0]}{NC}\n")
-                    return jsonify({"error": msg}), 403
+                    invalidate_cache(abs_target)
+                    invalidate_cache(os.path.dirname(abs_target))
+                    _push_sse_deleted(abs_target)
+                    return jsonify({"success": True, "message": msg, "skipped": [str(p) for p in skipped_paths]})
 
                 if skipped_paths:
                     msg = f"Partially trashed ({len(skipped_paths)} protected item(s) skipped)"
