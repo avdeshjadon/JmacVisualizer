@@ -28,8 +28,6 @@
     "productName": "JmacVisualizer",
     "mac": {
       "target": [
-        "dmg",
-        "zip",
         "dir"
       ],
       "category": "public.app-category.utilities",
