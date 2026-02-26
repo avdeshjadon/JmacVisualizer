@@ -107,7 +107,7 @@ export default function App() {
         setScanCache({})
         // Re-scan the current view so the chart updates
         if (currentPathRef.current) {
-          loadAndRender(currentPathRef.current, 3, false, true)
+          loadAndRender(currentPathRef.current, 3, false, true, false)
         }
         // Refresh disk overview bar
         window.dispatchEvent(new CustomEvent('refresh-disk'))
@@ -176,7 +176,7 @@ export default function App() {
     }
   }
 
-  async function loadAndRender(path, depth = 3, pushHistory = true, isRefresh = false) {
+  async function loadAndRender(path, depth = 3, pushHistory = true, isRefresh = false, showOverlay = true) {
     // Check cache first if not a refresh
     const cacheKey = `${path || 'home'}_${depth}`
     if (!isRefresh && scanCache[cacheKey]) {
@@ -185,15 +185,17 @@ export default function App() {
       setChartData(data)
       updateBreadcrumb(data.path)
       updateCenterInfoFromData(data)
-      setLoading(false)
+      if (showOverlay) setLoading(false)
       
       // Trigger background pre-fetch even on cache hit
       backgroundPreFetch(data)
       return
     }
 
-    setLoading(true)
-    setLoadingText(`Scanning ${path || 'home'}…`)
+    if (showOverlay) {
+      setLoading(true)
+      setLoadingText(`Scanning ${path || 'home'}…`)
+    }
     try {
       const data = await fetchScan(path, depth)
       currentPathRef.current = data.path
@@ -208,9 +210,9 @@ export default function App() {
       backgroundPreFetch(data)
     } catch (err) {
       console.error('Scan failed:', err)
-      setLoadingText('Error: ' + err.message)
+      if (showOverlay) setLoadingText('Error: ' + err.message)
     } finally {
-      setLoading(false)
+      if (showOverlay) setLoading(false)
     }
   }
 
@@ -341,7 +343,7 @@ export default function App() {
         window.dispatchEvent(new CustomEvent('refresh-disk'))
 
         if (currentPathRef.current) {
-          await loadAndRender(currentPathRef.current, 3, false, true)
+          await loadAndRender(currentPathRef.current, 3, false, true, false)
         }
       } else {
         showToast(result.error || 'Delete failed', 'error')

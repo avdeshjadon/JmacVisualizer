@@ -130,15 +130,16 @@ export default function SunburstChart({ data, width, height, onHoverNode, onClic
       if (!paths) return
       const ancestors = target ? target.ancestors() : []
       paths.interrupt()
-        .transition().duration(target ? 150 : 250)
+        .transition().duration(target ? 250 : 350)
+        .ease(d3.easeCubicOut)
         .attr('d', p => ancestors.includes(p) ? hoverArc(p) : arc(p))
         .attr('fill-opacity', p => {
           if (ancestors.includes(p)) return 1
           const isFile = !p.data.children || p.data.children.length === 0
           return isFile ? 0.9 : 0.6 - (p.depth * 0.05)
         })
-        .attr('stroke', p => ancestors.includes(p) ? 'rgba(255,255,255,0.8)' : 'rgba(10, 10, 26, 0.6)')
-        .attr('stroke-width', p => ancestors.includes(p) ? 1.5 : 0.5)
+        .attr('stroke', p => ancestors.includes(p) ? 'rgba(255,255,255,0.9)' : 'rgba(10, 10, 26, 0.6)')
+        .attr('stroke-width', p => ancestors.includes(p) ? 2 : 0.5)
     }
 
     paths
@@ -161,12 +162,12 @@ export default function SunburstChart({ data, width, height, onHoverNode, onClic
     // 4. Entrance animation - Layer by Layer growth
     const descendants = root.descendants()
     const isLarge = descendants.length > 500
-    const waveDelayMultiplier = isLarge ? Math.min(0.4, 350 / descendants.length) : 0.7
+    const waveDelayMultiplier = isLarge ? Math.min(0.2, 200 / descendants.length) : 0.4
     
     // REDUNDANT SAFETY: Ensure easing is a function
     const getSafeEase = () => {
       try {
-        return d3.easeCubicOut || d3.easeCubic || ((t) => t)
+        return d3.easeExpOut || d3.easeCubicOut || ((t) => t)
       } catch (e) {
         return (t) => t
       }
@@ -175,7 +176,7 @@ export default function SunburstChart({ data, width, height, onHoverNode, onClic
     
     // First, show the container
     containerGroup.transition()
-      .duration(400)
+      .duration(500)
       .ease(safeEase)
       .style('opacity', 1)
       .attr('transform', 'scale(1)')
@@ -184,8 +185,8 @@ export default function SunburstChart({ data, width, height, onHoverNode, onClic
     paths
       .attr('d', d => arc({ ...d, x0: 0, x1: 0 })) // Start from 0 angle
       .transition()
-      .duration(650)
-      .delay((d, i) => d.depth * 60 + i * waveDelayMultiplier + 80) 
+      .duration(850)
+      .delay((d, i) => Math.pow(d.depth, 1.2) * 80 + i * waveDelayMultiplier + 80) 
       .ease(safeEase)
       .attrTween('d', function(d) {
         const iX0 = d3.interpolate(0, d.x0)

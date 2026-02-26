@@ -145,7 +145,6 @@ export default function QuickClean({ onCleanDone }) {
           <div
             className="quick-clean-card glass-panel"
             key={t.id}
-            data-sb-tooltip={`${t.name}\nPath: ${t.path}\nSize: ${formatSize(t.size)}`}
           >
             <div className="qc-info">
               <div className="qc-name">{t.name}</div>
@@ -159,11 +158,6 @@ export default function QuickClean({ onCleanDone }) {
               className={`qc-btn${isCleaning ? ' qc-btn--cleaning' : ''}`}
               disabled={isEmpty || !!cleaningId}
               onClick={() => handleClean(t)}
-              title={
-                t.id === 'trash'
-                  ? 'Permanently empty Trash'
-                  : `Move ${t.name} to Trash`
-              }
             >
               {isCleaning ? (
                 /* Inline mini spinner — no fullscreen overlay */

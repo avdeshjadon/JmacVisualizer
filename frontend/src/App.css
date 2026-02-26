@@ -44,9 +44,9 @@
 /* ─── CSS Variables — Midnight Aurora Design System ─────────── */
 :root {
   /* Colors */
-  --bg-primary: #111111;
-  --bg-secondary: #161616;
-  --bg-tertiary: #1d1d1d;
+  --bg-primary: #181818;
+  --bg-secondary: #1d1d1d;
+  --bg-tertiary: #222222;
   --bg-gradient: var(--bg-primary);
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
@@ -55,10 +55,10 @@
   --glass-strong: rgba(255, 255, 255, 0.06);
 
   /* Text */
-  --text-primary: #ffffff;
-  --text-secondary: #ffffff;
-  --text-tertiary: #ffffff;
-  --text-muted: #ffffff;
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
 
   /* Accent colors */
   --accent-blue: #ffffff;
@@ -193,9 +193,17 @@
   font-size: 1rem;
 }
 
+.btn-permissions {
+  /* Corrected class name */
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  padding: 12px 24px;
+  box-shadow: var(--shadow-glow);
+}
+
 .btn-primary {
   background: var(--gradient-primary);
-  color: #fff;
+  color: var(--text-primary); /* Changed from #fff */
   border: none;
   box-shadow: var(--shadow-glow);
 }
@@ -304,7 +312,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(7, 7, 26, 0.85);
+  background: rgba(18, 18, 18, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   display: flex;
@@ -342,21 +350,21 @@ body {
 .monitor-frame {
   width: 220px;
   height: 150px;
-  background: #2a2a35;
+  background: #2a2a2a;
   border-radius: 12px;
   padding: 10px;
   position: relative;
   box-shadow:
     0 0 50px rgba(0, 0, 0, 0.6),
     inset 0 0 10px rgba(0, 0, 0, 0.8);
-  border: 1px solid #444455;
+  border: 1px solid #444444;
   z-index: 2; /* Ensure screen is above stand */
 }
 
 .monitor-screen {
   width: 100%;
   height: 100%;
-  background: #050510;
+  background: #050505;
   border-radius: 4px;
   overflow: hidden;
   position: relative;
@@ -398,23 +406,23 @@ body {
 .monitor-neck {
   width: 50px;
   height: 25px;
-  background: #22222d;
+  background: #222222;
   margin-top: -4px;
   position: relative;
   z-index: 1;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-  border-left: 1px solid #333344;
-  border-right: 1px solid #333344;
+  border-left: 1px solid #333333;
+  border-right: 1px solid #333333;
 }
 
 .monitor-base {
   width: 100px;
   height: 8px;
-  background: #22222d;
+  background: #222222;
   border-radius: 4px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   z-index: 1;
-  border-top: 1px solid #333344;
+  border-top: 1px solid #333333;
 }
 
 /* ─── Screen Internal Files ─── */
@@ -446,13 +454,13 @@ body {
 .file-icon {
   width: 6px;
   height: 6px;
-  background: #444455;
+  background: #444444;
   border-radius: 1px;
 }
 
 .file-line {
   height: 4px;
-  background: #333344;
+  background: #333333;
   border-radius: 2px;
 }
 
@@ -601,7 +609,7 @@ body {
 
 .breadcrumb-item:hover {
   background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .breadcrumb-item.active {
@@ -672,7 +680,7 @@ body {
 
 .btn-ghost:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--text-primary);
   border-color: rgba(255, 255, 255, 0.4);
   box-shadow: 0 0 14px var(--accent-glow);
 }
@@ -684,7 +692,7 @@ body {
 
 .btn-danger {
   background: var(--gradient-danger);
-  color: #fff;
+  color: var(--text-primary);
   border: none;
   box-shadow: var(--shadow-sm);
 }
@@ -719,7 +727,7 @@ body {
   z-index: 5;
   margin: 12px 24px 0;
   padding: 16px 20px;
-  background: #121212 !important;
+  background: #181818 !important;
 }
 
 .storage-header {
@@ -938,7 +946,7 @@ body {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: #121212;
+  background: #181818;
 }
 
 /* ─── Chart Container ───────────────────────────────────────── */
@@ -949,7 +957,7 @@ body {
   justify-content: center;
   overflow: hidden;
   min-height: 0;
-  background: #181818;
+  background: #1d1d1d;
   border-radius: var(--radius-lg);
 }
 
@@ -996,8 +1004,8 @@ body {
 }
 
 .center-name {
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1.15rem;
+  font-weight: 500;
   color: var(--text-primary);
   max-width: 160px;
   overflow: hidden;
@@ -1007,11 +1015,11 @@ body {
 }
 
 .center-size {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
-  font-size: 1.7rem;
+  font-size: 1.85rem;
   margin: 4px 0;
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
 }
 
 .center-items {
@@ -1164,6 +1172,7 @@ body {
 .qc-btn:hover:not(:disabled) {
   background: var(--accent-1);
   border-color: var(--accent-1);
+  color: var(--bg-primary);
 }
 
 .qc-btn:disabled {
@@ -1770,7 +1779,7 @@ body {
   padding: 8px 24px;
   font-size: 0.75rem;
   color: var(--text-muted);
-  background: #1a1a1a !important;
+  background: #1d1d1d !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--glass-border);
@@ -1778,7 +1787,7 @@ body {
 }
 
 .app-footer span {
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
