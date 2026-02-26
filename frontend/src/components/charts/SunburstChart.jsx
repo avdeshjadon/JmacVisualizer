@@ -200,18 +200,18 @@ export default function SunburstChart({ data, width, height, onHoverNode, onClic
     }, Math.min(maxTotalDelay, 2000))
 
     // Center back-button circle
-    const innerR = depthRadius - 2
+    const innerR = Math.max(1, depthRadius - 2)
     g.append('circle')
       .attr('r', innerR)
       .attr('fill', 'rgba(10, 10, 26, 0.4)')
-      .attr('stroke', 'rgba(124, 92, 252, 0.3)')
+      .attr('stroke', 'rgba(255, 255, 255, 0.3)')
       .attr('stroke-width', 1)
       .attr('cursor', 'pointer')
       .on('mouseenter', function() {
-        d3.select(this).attr('fill', 'rgba(124, 92, 252, 0.1)').attr('stroke', 'rgba(124, 92, 252, 0.6)')
+        d3.select(this).attr('fill', 'rgba(255, 255, 255, 0.1)').attr('stroke', 'rgba(255, 255, 255, 0.6)')
       })
       .on('mouseleave', function() {
-        d3.select(this).attr('fill', 'rgba(10, 10, 26, 0.4)').attr('stroke', 'rgba(124, 92, 252, 0.3)')
+        d3.select(this).attr('fill', 'rgba(10, 10, 26, 0.4)').attr('stroke', 'rgba(255, 255, 255, 0.3)')
       })
       .on('click', onGoBack)
 

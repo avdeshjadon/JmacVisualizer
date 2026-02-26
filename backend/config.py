@@ -75,12 +75,12 @@ CATEGORY_EXTENSIONS = {
 
 # Colors for each storage category (used in the storage bar)
 CATEGORY_COLORS = {
-    "Apps":        "#ff3b30", # Red
-    "Documents":   "#ff9500", # Orange
-    "System Data": "#8e8e93", # Gray
-    "macOS":       "#48484a", # Dark Gray
-    "Other":       "#c7c7cc", # Silver
-    "Archives":    "#5ac8fa", # Light Blue
+    "Apps":        "#ec4899", # pink
+    "Documents":   "#f97316", # orange
+    "System Data": "#8b5cf6", # purple
+    "macOS":       "#3b82f6", # blue
+    "Other":       "#06b6d4", # cyan
+    "Archives":    "#22c55e", # green
 }
 
 # Server config

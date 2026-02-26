@@ -27,27 +27,19 @@
 //   onRootChange(path)                     -- Called when root selector changes.
 //   onRefresh()                            -- Called when Refresh is clicked.
 // ----------------------------------------------------------------------------
-import React from 'react'
+import React from "react";
 
-export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRootChange, onRefresh }) {
+export default function Header({
+  breadcrumbParts,
+  roots,
+  onBreadcrumbClick,
+  onRootChange,
+  onRefresh,
+}) {
   return (
     <header className="header">
       <div className="header-left">
-        <div className="logo tooltip-trigger" title="Jmac Visualizer Logo">
-          <svg viewBox="0 0 100 100" width="30" height="30" fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 0 6px rgba(124, 92, 252, 0.4))' }}>
-            <defs>
-              <linearGradient id="logo-min-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#7c5cfc" />
-                <stop offset="50%" stopColor="#fc5c8c" />
-                <stop offset="100%" stopColor="#2ed573" />
-              </linearGradient>
-            </defs>
-            <circle cx="50" cy="50" r="40" stroke="url(#logo-min-grad)" strokeWidth="8" opacity="0.9" strokeDasharray="180 60" />
-            <circle cx="50" cy="50" r="24" stroke="url(#logo-min-grad)" strokeWidth="6" opacity="0.7" strokeDasharray="80 30" transform="rotate(120 50 50)" />
-            <circle cx="50" cy="50" r="8" fill="url(#logo-min-grad)" />
-          </svg>
-        </div>
-        <h1>Jmac Visualizer</h1>
+        <h1 className="logo-text">Jmac Visualizer</h1>
       </div>
       <div className="header-center">
         <div className="breadcrumb" id="breadcrumb">
@@ -56,7 +48,7 @@ export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRo
             return (
               <React.Fragment key={part.path}>
                 <span
-                  className={`breadcrumb-item${isLast ? ' active' : ''}`}
+                  className={`breadcrumb-item${isLast ? " active" : ""}`}
                   data-path={part.path}
                   onClick={() => onBreadcrumbClick(part.path)}
                 >
@@ -69,8 +61,22 @@ export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRo
         </div>
       </div>
       <div className="header-right">
-        <button id="refresh-btn" className="btn btn-ghost" title="Refresh scan" onClick={onRefresh}>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <button
+          id="refresh-btn"
+          className="btn btn-ghost"
+          title="Refresh scan"
+          onClick={onRefresh}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <polyline points="23 4 23 10 17 10" />
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
           </svg>
@@ -78,6 +84,5 @@ export default function Header({ breadcrumbParts, roots, onBreadcrumbClick, onRo
         </button>
       </div>
     </header>
-  )
+  );
 }
-

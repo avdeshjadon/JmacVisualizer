@@ -326,7 +326,7 @@ function Legend({ root }) {
   return (
     <div className="row-list" id="legend">
       {sorted.map(([ext, size]) => {
-        const c = ext === 'directory' ? '#7c5cfc' : (FILE_COLORS[ext] || '#555')
+        const c = ext === 'directory' ? 'var(--accent-purple)' : (FILE_COLORS[ext] || '#555')
         const name = ext === 'directory' ? 'Folders' : ext
         const tooltip = `${name} Total Size\n${formatSize(size)}`
         return (

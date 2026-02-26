@@ -143,7 +143,7 @@ export default function QuickClean({ onCleanDone }) {
 
         return (
           <div
-            className="quick-clean-card"
+            className="quick-clean-card glass-panel"
             key={t.id}
             data-sb-tooltip={`${t.name}\nPath: ${t.path}\nSize: ${formatSize(t.size)}`}
           >

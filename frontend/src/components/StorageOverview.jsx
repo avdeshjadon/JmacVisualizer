@@ -64,7 +64,7 @@ export default function StorageOverview({ onNavigate }) {
   if (loading && !data) {
     return (
       <section className="storage-overview glass-panel loading-state">
-        <div className="spinner-sm"></div>
+        <div className="spinner-sm" style={{ borderTopColor: 'var(--accent-blue)' }}></div>
         <span>Analyzing Macintosh HD...</span>
       </section>
     );
